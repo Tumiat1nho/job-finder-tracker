@@ -1,8 +1,8 @@
 // API Configuration
-// Use HTTPS in production, HTTP in local development
+// Use localhost for development, Railway URL for production
 const API_URL = window.location.hostname === 'localhost' 
     ? 'http://localhost:8000' 
-    : window.location.origin.replace('http://', 'https://');
+    : 'https://job-finder-tracker-production.up.railway.app';
 let token = localStorage.getItem('token');
 let currentUser = null;
 
