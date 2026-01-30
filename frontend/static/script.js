@@ -1,5 +1,8 @@
 // API Configuration
-const API_URL = window.location.origin; // Usa a mesma URL do frontend
+// Use HTTPS in production, HTTP in local development
+const API_URL = window.location.hostname === 'localhost' 
+    ? 'http://localhost:8000' 
+    : window.location.origin.replace('http://', 'https://');
 let token = localStorage.getItem('token');
 let currentUser = null;
 
