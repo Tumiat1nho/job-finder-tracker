@@ -1,3 +1,6 @@
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -16,10 +19,15 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
+
 # Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Em produção, especifique os domínios permitidos
+    allow_origins=[
+    "https://*.onrender.com",
+    "http://localhost:8000",
+],  # Em produção, especifique os domínios permitidos
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -62,3 +70,9 @@ def health_check():
     Verifica se a API está funcionando
     """
     return {"status": "healthy"}
+
+
+@app.get("/app", tags=["Frontend"])
+def serve_frontend():
+    """Servir interface web"""
+    return FileResponse("frontend/index.html")
