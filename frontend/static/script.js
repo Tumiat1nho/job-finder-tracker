@@ -1,47 +1,31 @@
 // ==============================
-// Job Tracker - Frontend Script
+// Job Finder Tracker - Frontend Script (final)
+// - Uses trailing slash for /applications/ endpoints to match FastAPI routers
 // ==============================
 
-// Detect environment
 const isLocal =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1";
 
-// IMPORTANT:
-// - Local: backend em http://localhost:8000
-// - Prod: backend em Railway (HTTPS)
-const PROD_API_ORIGIN = "https://job-finder-tracker-production.up.railway.app";
+const API_ORIGIN = isLocal
+  ? "http://localhost:8000"
+  : "https://job-finder-tracker-production.up.railway.app";
 
-// If your app is served under /app (like https://.../app),
-// some backends are also mounted under /app. Your screenshot showed /app/applications.
-// So we auto-detect and set API_PREFIX accordingly in production.
-const API_PREFIX = !isLocal && window.location.pathname.startsWith("/app")
-  ? "/app"
-  : "";
-
-// Base API origin
-const API_ORIGIN = isLocal ? "http://localhost:8000" : PROD_API_ORIGIN;
-
-// Force HTTPS in production (avoid mixed content if something changes)
-const SAFE_API_ORIGIN = isLocal
-  ? API_ORIGIN
-  : API_ORIGIN.replace(/^http:\/\//i, "https://");
-
-// Helper: always build API URLs here
 function apiUrl(path) {
-  // Ensure path starts with /
   const p = path.startsWith("/") ? path : `/${path}`;
-  return `${SAFE_API_ORIGIN}${API_PREFIX}${p}`;
+  return `${API_ORIGIN}${p}`;
 }
+
+// ✅ These endpoints exist in your backend (with trailing slash)
+const ENDPOINTS = {
+  applications: "/applications/", // GET list, POST create
+  applicationById: (id) => `/applications/${id}`, // GET/PUT/DELETE by id (no trailing slash)
+  register: "/auth/register",
+  login: "/auth/login",
+};
 
 let token = localStorage.getItem("token");
 let currentUser = null;
-
-// Debug (remove if you want)
-console.log("ENV:", isLocal ? "local" : "prod");
-console.log("API_ORIGIN:", SAFE_API_ORIGIN);
-console.log("API_PREFIX:", API_PREFIX);
-console.log("Example applications URL:", apiUrl("/applications"));
 
 // ------------------------------
 // Initialize
@@ -57,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // If we already have token, go dashboard and try load
   if (token) {
     showDashboard();
     loadApplications();
@@ -125,7 +110,7 @@ async function handleRegister(e) {
   const password = document.getElementById("registerPassword")?.value;
 
   try {
-    const response = await fetch(apiUrl("/auth/register"), {
+    const response = await fetch(apiUrl(ENDPOINTS.register), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -140,6 +125,7 @@ async function handleRegister(e) {
       if (loginEmail) loginEmail.value = email || "";
     } else {
       showToast(data?.detail || "Erro ao criar conta", "error");
+      console.error("Register error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão com o servidor", "error");
@@ -160,11 +146,12 @@ async function handleLogin(e) {
   const password = document.getElementById("loginPassword")?.value;
 
   try {
+    // Backend expects x-www-form-urlencoded with username/password (OAuth2PasswordRequestForm)
     const formData = new URLSearchParams();
     formData.append("username", email || "");
     formData.append("password", password || "");
 
-    const response = await fetch(apiUrl("/auth/login"), {
+    const response = await fetch(apiUrl(ENDPOINTS.login), {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: formData,
@@ -181,6 +168,7 @@ async function handleLogin(e) {
       loadApplications();
     } else {
       showToast(data?.detail || "Email ou senha incorretos", "error");
+      console.error("Login error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão com o servidor", "error");
@@ -208,20 +196,22 @@ async function loadApplications() {
   showLoading();
 
   try {
-    const response = await fetch(apiUrl("/applications"), {
+    const response = await fetch(apiUrl(ENDPOINTS.applications), {
       headers: authHeader(),
     });
 
     if (response.ok) {
       const applications = await safeJson(response);
-      renderApplications(Array.isArray(applications) ? applications : []);
-      updateStats(Array.isArray(applications) ? applications : []);
+      const list = Array.isArray(applications) ? applications : [];
+      renderApplications(list);
+      updateStats(list);
     } else if (response.status === 401) {
       logout();
       showToast("Sessão expirada. Faça login novamente.", "error");
     } else {
-      showToast("Erro ao carregar candidaturas", "error");
-      console.error("loadApplications status:", response.status);
+      const data = await safeJson(response);
+      showToast(data?.detail || "Erro ao carregar candidaturas", "error");
+      console.error("loadApplications error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão com o servidor", "error");
@@ -328,7 +318,7 @@ function showAddModal() {
   const editId = document.getElementById("editId");
   if (editId) editId.value = "";
 
-  // Set today's date as default
+  // default date today
   const today = new Date().toISOString().split("T")[0];
   const inputData = document.getElementById("inputData");
   if (inputData) inputData.value = today;
@@ -356,7 +346,7 @@ async function editApplication(id) {
   showLoading();
 
   try {
-    const response = await fetch(apiUrl(`/applications/${id}`), {
+    const response = await fetch(apiUrl(ENDPOINTS.applicationById(id)), {
       headers: authHeader(),
     });
 
@@ -383,8 +373,9 @@ async function editApplication(id) {
       logout();
       showToast("Sessão expirada. Faça login novamente.", "error");
     } else {
-      showToast("Erro ao carregar candidatura", "error");
-      console.error("editApplication status:", response.status);
+      const data = await safeJson(response);
+      showToast(data?.detail || "Erro ao carregar candidatura", "error");
+      console.error("editApplication error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão", "error");
@@ -419,8 +410,8 @@ async function handleSubmitApplication(e) {
 
   try {
     const url = editId
-      ? apiUrl(`/applications/${editId}`)
-      : apiUrl("/applications");
+      ? apiUrl(ENDPOINTS.applicationById(editId))
+      : apiUrl(ENDPOINTS.applications);
 
     const method = editId ? "PUT" : "POST";
 
@@ -443,10 +434,10 @@ async function handleSubmitApplication(e) {
     } else {
       const data = await safeJson(response);
       showToast(data?.detail || "Erro ao salvar candidatura", "error");
-      console.error("handleSubmitApplication status:", response.status, data);
+      console.error("handleSubmitApplication error:", response.status, data);
     }
   } catch (err) {
-    showToast("Erro de conexão", "error");
+    showToast("Erro de conexão com o servidor", "error");
     console.error(err);
   } finally {
     hideLoading();
@@ -462,7 +453,7 @@ async function deleteApplication(id) {
   showLoading();
 
   try {
-    const response = await fetch(apiUrl(`/applications/${id}`), {
+    const response = await fetch(apiUrl(ENDPOINTS.applicationById(id)), {
       method: "DELETE",
       headers: authHeader(),
     });
@@ -474,11 +465,12 @@ async function deleteApplication(id) {
       logout();
       showToast("Sessão expirada. Faça login novamente.", "error");
     } else {
-      showToast("Erro ao deletar candidatura", "error");
-      console.error("deleteApplication status:", response.status);
+      const data = await safeJson(response);
+      showToast(data?.detail || "Erro ao deletar candidatura", "error");
+      console.error("deleteApplication error:", response.status, data);
     }
   } catch (err) {
-    showToast("Erro de conexão", "error");
+    showToast("Erro de conexão com o servidor", "error");
     console.error(err);
   } finally {
     hideLoading();
@@ -527,7 +519,6 @@ function authHeader() {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-// Safe JSON parse even when body is empty / not json
 async function safeJson(response) {
   try {
     const text = await response.text();
@@ -538,7 +529,6 @@ async function safeJson(response) {
   }
 }
 
-// Small XSS protection for card rendering
 function escapeHtml(v) {
   const s = String(v ?? "");
   return s
