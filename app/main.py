@@ -3,6 +3,8 @@ from fastapi.responses import FileResponse
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, RedirectResponse
 
 from .database import engine, Base
 from .routers import auth_router, applications
@@ -36,6 +38,15 @@ app.add_middleware(
 # Incluir routers
 app.include_router(auth_router.router)
 app.include_router(applications.router)
+
+@app.get("/", tags=["Root"])
+def root():
+    """
+    Redirect para o frontend
+    
+    Redireciona automaticamente para a interface web
+    """
+    return RedirectResponse(url="/app")
 
 
 @app.get("/", tags=["Root"])
