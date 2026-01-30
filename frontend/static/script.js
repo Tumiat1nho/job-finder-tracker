@@ -1,5 +1,5 @@
 // API Configuration
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = window.location.origin; // Usa a mesma URL do frontend
 let token = localStorage.getItem('token');
 let currentUser = null;
 
