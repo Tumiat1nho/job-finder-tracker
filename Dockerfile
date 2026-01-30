@@ -25,5 +25,5 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Run application - Railway controls the port via startCommand in railway.json
-CMD ["sh", "-c", "exec uvicorn app.main:app --host 0.0.0.0 --port ${PORT}"]
+# Railway will use the startCommand from railway.json
+# No CMD here - let railway.json control it
