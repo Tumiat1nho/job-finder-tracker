@@ -25,5 +25,5 @@ COPY . .
 # Expose port
 EXPOSE 8000
 
-# Railway will use the startCommand from railway.json
-# No CMD here - let railway.json control it
+# Railway injects PORT as environment variable
+CMD uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}
