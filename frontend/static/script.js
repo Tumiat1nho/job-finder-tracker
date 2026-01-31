@@ -765,11 +765,13 @@ async function loadStats() {
       renderStats(stats);
     } else {
       console.error('Erro ao carregar estatísticas');
-      document.getElementById('statsContainer').innerHTML = '<p class="loading-stats">Erro ao carregar estatísticas</p>';
+      const container = document.getElementById('statsContainer');
+      if (container) container.innerHTML = '<p class="loading-stats">Erro ao carregar estatísticas</p>';
     }
   } catch (error) {
     console.error('Erro:', error);
-    document.getElementById('statsContainer').innerHTML = '<p class="loading-stats">Erro ao carregar estatísticas</p>';
+    const container = document.getElementById('statsContainer');
+    if (container) container.innerHTML = '<p class="loading-stats">Erro ao carregar estatísticas</p>';
   }
 }
 
