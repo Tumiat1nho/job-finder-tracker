@@ -1,8 +1,3 @@
-// ==============================
-// Job Finder Tracker - Frontend Script (final)
-// - Uses trailing slash for /applications/ endpoints to match FastAPI routers
-// ==============================
-
 const isLocal =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1";
@@ -16,24 +11,21 @@ function apiUrl(path) {
   return `${API_ORIGIN}${p}`;
 }
 
-// ✅ These endpoints exist in your backend (with trailing slash)
 const ENDPOINTS = {
-  applications: "/applications/", // GET list, POST create
-  applicationById: (id) => `/applications/${id}`, // GET/PUT/DELETE by id (no trailing slash)
+  applications: "/applications/",
+  applicationById: (id) => `/applications/${id}`,
   register: "/auth/register",
   login: "/auth/login",
+  me: "/users/me",
+  changePassword: "/users/me/password",
 };
 
 let token = localStorage.getItem("token");
 let currentUser = null;
 
-// ------------------------------
-// Initialize
-// ------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   hideLoading();
 
-  // Update chance indicator on input
   const chanceInput = document.getElementById("inputChance");
   if (chanceInput) {
     chanceInput.addEventListener("input", (e) => {
@@ -41,31 +33,53 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // If we already have token, go dashboard and try load
   if (token) {
     showDashboard();
+    // carrega dados do perfil e candidaturas
+    loadProfile();
     loadApplications();
   } else {
     showAuth();
   }
 });
 
-// ------------------------------
-// Loading
-// ------------------------------
+/* ---------------- Loading ---------------- */
 function showLoading() {
   const el = document.getElementById("loading");
   if (el) el.style.display = "flex";
 }
-
 function hideLoading() {
   const el = document.getElementById("loading");
   if (el) el.style.display = "none";
 }
 
-// ------------------------------
-// Auth Screens
-// ------------------------------
+/* ---------------- Navigation / Sections ---------------- */
+function showSection(section) {
+  const sectionApplications = document.getElementById("sectionApplications");
+  const sectionProfile = document.getElementById("sectionProfile");
+
+  const tabApplications = document.getElementById("tabApplications");
+  const tabProfile = document.getElementById("tabProfile");
+
+  if (!sectionApplications || !sectionProfile || !tabApplications || !tabProfile) return;
+
+  if (section === "profile") {
+    sectionApplications.style.display = "none";
+    sectionProfile.style.display = "block";
+    tabApplications.classList.remove("active");
+    tabProfile.classList.add("active");
+    loadProfile();
+    return;
+  }
+
+  // default applications
+  sectionProfile.style.display = "none";
+  sectionApplications.style.display = "block";
+  tabProfile.classList.remove("active");
+  tabApplications.classList.add("active");
+}
+
+/* ---------------- Auth Screens ---------------- */
 function showAuth() {
   const auth = document.getElementById("authScreen");
   const dash = document.getElementById("dashboard");
@@ -78,11 +92,6 @@ function showDashboard() {
   const dash = document.getElementById("dashboard");
   if (auth) auth.style.display = "none";
   if (dash) dash.style.display = "flex";
-
-  if (currentUser) {
-    const userEmail = document.getElementById("userEmail");
-    if (userEmail) userEmail.textContent = currentUser.email;
-  }
 }
 
 function showLogin() {
@@ -99,9 +108,7 @@ function showRegister() {
   if (reg) reg.style.display = "block";
 }
 
-// ------------------------------
-// Register
-// ------------------------------
+/* ---------------- Register ---------------- */
 async function handleRegister(e) {
   e.preventDefault();
   showLoading();
@@ -135,9 +142,7 @@ async function handleRegister(e) {
   }
 }
 
-// ------------------------------
-// Login
-// ------------------------------
+/* ---------------- Login ---------------- */
 async function handleLogin(e) {
   e.preventDefault();
   showLoading();
@@ -146,7 +151,6 @@ async function handleLogin(e) {
   const password = document.getElementById("loginPassword")?.value;
 
   try {
-    // Backend expects x-www-form-urlencoded with username/password (OAuth2PasswordRequestForm)
     const formData = new URLSearchParams();
     formData.append("username", email || "");
     formData.append("password", password || "");
@@ -162,9 +166,12 @@ async function handleLogin(e) {
     if (response.ok) {
       token = data.access_token;
       localStorage.setItem("token", token);
-      currentUser = { email };
+
       showToast("Login realizado com sucesso!", "success");
       showDashboard();
+
+      showSection("applications");
+      loadProfile();
       loadApplications();
     } else {
       showToast(data?.detail || "Email ou senha incorretos", "error");
@@ -178,9 +185,7 @@ async function handleLogin(e) {
   }
 }
 
-// ------------------------------
-// Logout
-// ------------------------------
+/* ---------------- Logout ---------------- */
 function logout() {
   localStorage.removeItem("token");
   token = null;
@@ -189,9 +194,98 @@ function logout() {
   showToast("Logout realizado com sucesso", "success");
 }
 
-// ------------------------------
-// Load Applications
-// ------------------------------
+/* ---------------- Profile ---------------- */
+async function loadProfile() {
+  if (!token) return;
+
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.me), {
+      headers: authHeader(),
+    });
+
+    const data = await safeJson(response);
+
+    if (response.ok) {
+      currentUser = data;
+
+      // Sidebar email
+      const userEmail = document.getElementById("userEmail");
+      if (userEmail) userEmail.textContent = data.email;
+
+      // Profile section
+      const profileEmail = document.getElementById("profileEmail");
+      if (profileEmail) profileEmail.textContent = data.email;
+    } else if (response.status === 401) {
+      logout();
+      showToast("Sessão expirada. Faça login novamente.", "error");
+    } else {
+      showToast(data?.detail || "Erro ao carregar perfil", "error");
+      console.error("loadProfile error:", response.status, data);
+    }
+  } catch (err) {
+    console.error(err);
+    // não faz spam de toast aqui toda vez
+  }
+}
+
+async function handleChangePassword(e) {
+  e.preventDefault();
+  showLoading();
+
+  const current_password = document.getElementById("currentPassword")?.value || "";
+  const new_password = document.getElementById("newPassword")?.value || "";
+  const confirm_new_password = document.getElementById("confirmNewPassword")?.value || "";
+
+  if (new_password.length < 6) {
+    hideLoading();
+    showToast("A nova senha deve ter no mínimo 6 caracteres", "error");
+    return;
+  }
+
+  if (new_password !== confirm_new_password) {
+    hideLoading();
+    showToast("As senhas novas não coincidem", "error");
+    return;
+  }
+
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.changePassword), {
+      method: "PUT",
+      headers: {
+        ...authHeader(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        current_password,
+        new_password,
+        confirm_new_password,
+      }),
+    });
+
+    if (response.status === 204) {
+      showToast("Senha alterada com sucesso!", "success");
+      document.getElementById("changePasswordForm")?.reset();
+      return;
+    }
+
+    const data = await safeJson(response);
+
+    if (response.status === 401) {
+      showToast(data?.detail || "Senha atual incorreta", "error");
+      return;
+    }
+
+    showToast(data?.detail || "Erro ao alterar senha", "error");
+    console.error("changePassword error:", response.status, data);
+  } catch (err) {
+    showToast("Erro de conexão com o servidor", "error");
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+}
+
+/* ---------------- Applications ---------------- */
 async function loadApplications() {
   showLoading();
 
@@ -221,9 +315,6 @@ async function loadApplications() {
   }
 }
 
-// ------------------------------
-// Render Applications
-// ------------------------------
 function renderApplications(applications) {
   const container = document.getElementById("applicationsList");
   const emptyState = document.getElementById("emptyState");
@@ -279,9 +370,6 @@ function renderApplications(applications) {
     .join("");
 }
 
-// ------------------------------
-// Update Stats
-// ------------------------------
 function updateStats(applications) {
   const stats = {
     esperando: 0,
@@ -305,9 +393,7 @@ function setText(id, value) {
   if (el) el.textContent = String(value);
 }
 
-// ------------------------------
-// Modal
-// ------------------------------
+/* ---------------- Modal ---------------- */
 function showAddModal() {
   setText("modalTitle", "Nova Candidatura");
   setText("submitBtn", "Salvar");
@@ -318,7 +404,6 @@ function showAddModal() {
   const editId = document.getElementById("editId");
   if (editId) editId.value = "";
 
-  // default date today
   const today = new Date().toISOString().split("T")[0];
   const inputData = document.getElementById("inputData");
   if (inputData) inputData.value = today;
@@ -334,14 +419,10 @@ function closeModal() {
   if (modal) modal.classList.remove("active");
 }
 
-// Close modal on outside click
 document.getElementById("modal")?.addEventListener("click", (e) => {
   if (e.target?.id === "modal") closeModal();
 });
 
-// ------------------------------
-// Edit Application
-// ------------------------------
 async function editApplication(id) {
   showLoading();
 
@@ -390,9 +471,6 @@ function setValue(id, value) {
   if (el) el.value = value ?? "";
 }
 
-// ------------------------------
-// Submit Application (Create/Update)
-// ------------------------------
 async function handleSubmitApplication(e) {
   e.preventDefault();
   showLoading();
@@ -444,9 +522,6 @@ async function handleSubmitApplication(e) {
   }
 }
 
-// ------------------------------
-// Delete Application
-// ------------------------------
 async function deleteApplication(id) {
   if (!confirm("Tem certeza que deseja deletar esta candidatura?")) return;
 
@@ -470,24 +545,20 @@ async function deleteApplication(id) {
       console.error("deleteApplication error:", response.status, data);
     }
   } catch (err) {
-    showToast("Erro de conexão com o servidor", "error");
+    showToast("Erro de conexão", "error");
     console.error(err);
   } finally {
     hideLoading();
   }
 }
 
-// ------------------------------
-// Chance Indicator
-// ------------------------------
+/* ---------------- Chance Indicator ---------------- */
 function updateChanceIndicator(value) {
   const indicator = document.getElementById("chanceIndicator");
   if (indicator) indicator.style.width = `${Number(value) || 0}%`;
 }
 
-// ------------------------------
-// Utils
-// ------------------------------
+/* ---------------- Utils ---------------- */
 function formatDate(dateString) {
   if (!dateString) return "";
   const date = new Date(`${dateString}T00:00:00`);

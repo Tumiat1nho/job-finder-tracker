@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Job Finder Tracker</title>
-
-  <!-- ✅ Caminho absoluto -->
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
@@ -21,9 +19,7 @@
 
   <!-- Auth Screen -->
   <div id="authScreen" class="auth-screen">
-
     <div class="auth-container">
-
       <h1>JOB-FINDER-TRACKER</h1>
       <p class="subtitle">Organize suas candidaturas de um jeito simples.</p>
 
@@ -62,54 +58,112 @@
           <a href="#" onclick="showLogin()">Fazer login</a>
         </p>
       </form>
-
     </div>
   </div>
 
   <!-- Dashboard -->
   <div id="dashboard" class="dashboard" style="display:none;">
 
-    <header class="topbar">
-      <div class="brand">JOB-FINDER-TRACKER</div>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">JOB-FINDER</div>
 
-      <div class="user-area">
-        <span id="userEmail"></span>
+      <nav class="sidebar-nav">
+        <button id="tabApplications" class="sidebar-btn active" onclick="showSection('applications')">
+          📋 Candidaturas
+        </button>
+        <button id="tabProfile" class="sidebar-btn" onclick="showSection('profile')">
+          👤 Perfil
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-user">
+          <div class="sidebar-user-label">Logado como</div>
+          <div id="userEmail" class="sidebar-user-email"></div>
+        </div>
         <button class="btn-secondary" onclick="logout()">Sair</button>
       </div>
-    </header>
+    </aside>
 
+    <!-- Main content -->
     <main class="main">
-      <section class="stats">
-        <div class="stat-card">
-          <div class="stat-number" id="statEsperando">0</div>
-          <div class="stat-label">Esperando</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="statEntrevista">0</div>
-          <div class="stat-label">Entrevista</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="statRejeitado">0</div>
-          <div class="stat-label">Rejeitado</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-number" id="statTotal">0</div>
-          <div class="stat-label">Total</div>
-        </div>
+
+      <!-- SECTION: Applications -->
+      <section id="sectionApplications">
+
+        <header class="topbar">
+          <div class="brand">Candidaturas</div>
+        </header>
+
+        <section class="stats">
+          <div class="stat-card">
+            <div class="stat-number" id="statEsperando">0</div>
+            <div class="stat-label">Esperando</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="statEntrevista">0</div>
+            <div class="stat-label">Entrevista</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="statRejeitado">0</div>
+            <div class="stat-label">Rejeitado</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="statTotal">0</div>
+            <div class="stat-label">Total</div>
+          </div>
+        </section>
+
+        <section class="actions">
+          <button class="btn-primary" onclick="showAddModal()">+ Nova candidatura</button>
+        </section>
+
+        <section class="list">
+          <div id="emptyState" class="empty-state" style="display:none;">
+            <h2>Nenhuma candidatura ainda</h2>
+            <p>Clique em “Nova candidatura” para começar.</p>
+          </div>
+
+          <div id="applicationsList" class="applications-list"></div>
+        </section>
+
       </section>
 
-      <section class="actions">
-        <button class="btn-primary" onclick="showAddModal()">+ Nova candidatura</button>
-      </section>
+      <!-- SECTION: Profile -->
+      <section id="sectionProfile" style="display:none;">
 
-      <section class="list">
-        <div id="emptyState" class="empty-state" style="display:none;">
-          <h2>Nenhuma candidatura ainda</h2>
-          <p>Clique em “Nova candidatura” para começar.</p>
+        <header class="topbar">
+          <div class="brand">Perfil</div>
+        </header>
+
+        <div class="profile-card">
+          <h2>Informações da conta</h2>
+          <div class="profile-row">
+            <span class="profile-label">Email:</span>
+            <strong id="profileEmail">—</strong>
+          </div>
         </div>
 
-        <div id="applicationsList" class="applications-list"></div>
+        <div class="profile-card">
+          <h2>Segurança</h2>
+
+          <form id="changePasswordForm" onsubmit="handleChangePassword(event)" class="profile-form">
+            <label>Senha atual</label>
+            <input id="currentPassword" type="password" placeholder="Sua senha atual" required />
+
+            <label>Nova senha</label>
+            <input id="newPassword" type="password" placeholder="Mínimo 6 caracteres" required />
+
+            <label>Confirmar nova senha</label>
+            <input id="confirmNewPassword" type="password" placeholder="Repita a nova senha" required />
+
+            <button type="submit" class="btn-primary">Alterar senha</button>
+          </form>
+        </div>
+
       </section>
+
     </main>
   </div>
 
@@ -159,7 +213,6 @@
     </div>
   </div>
 
-  <!-- ✅ Caminho absoluto -->
   <script src="/static/script.js"></script>
 </body>
 </html>
