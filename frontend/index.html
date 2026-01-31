@@ -3,213 +3,293 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Job Finder Tracker</title>
+  <title>Job Tracker - Gerencie suas Candidaturas</title>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
   <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
 
-  <!-- Loading -->
+  <!-- Loading Overlay -->
   <div id="loading" class="loading-overlay">
-    <div class="spinner"></div>
+    <div class="loader"></div>
     <p>Carregando...</p>
   </div>
 
-  <!-- Toast -->
+  <!-- Toast Notifications -->
   <div id="toast" class="toast"></div>
 
-  <!-- Auth Screen -->
+  <!-- ==================== AUTH SCREEN ==================== -->
   <div id="authScreen" class="auth-screen">
     <div class="auth-container">
-      <h1>JOB-FINDER-TRACKER</h1>
-      <p class="subtitle">Organize suas candidaturas de um jeito simples.</p>
+      
+      <!-- Header -->
+      <div class="auth-header">
+        <div class="logo">
+          <span class="logo-icon">💼</span>
+          <h1>JOB TRACKER</h1>
+        </div>
+        <p class="tagline">Organize suas candidaturas de forma profissional</p>
+      </div>
 
       <!-- Login Form -->
-      <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+      <div id="loginForm" class="auth-form">
         <h2>Login</h2>
-
-        <label>Email</label>
-        <input id="loginEmail" type="email" placeholder="seuemail@exemplo.com" required />
-
-        <label>Senha</label>
-        <input id="loginPassword" type="password" placeholder="********" required />
-
-        <button type="submit">Entrar</button>
-
-        <p class="switch-auth">
-          Não tem conta?
-          <a href="#" onclick="showRegister()">Criar conta</a>
+        <form onsubmit="handleLogin(event)">
+          <div class="input-group">
+            <label>Email</label>
+            <input id="loginEmail" type="email" placeholder="seu@email.com" required />
+          </div>
+          <div class="input-group">
+            <label>Senha</label>
+            <input id="loginPassword" type="password" placeholder="••••••••" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+        <p class="switch-form">
+          Não tem conta? <a href="#" onclick="showRegister(); return false;">Registre-se</a>
         </p>
-      </form>
+      </div>
 
       <!-- Register Form -->
-      <form id="registerForm" class="auth-form" style="display:none;" onsubmit="handleRegister(event)">
-        <h2>Criar conta</h2>
-
-        <label>Email</label>
-        <input id="registerEmail" type="email" placeholder="seuemail@exemplo.com" required />
-
-        <label>Senha</label>
-        <input id="registerPassword" type="password" placeholder="********" required />
-
-        <button type="submit">Criar</button>
-
-        <p class="switch-auth">
-          Já tem conta?
-          <a href="#" onclick="showLogin()">Fazer login</a>
+      <div id="registerForm" class="auth-form" style="display: none;">
+        <h2>Criar Conta</h2>
+        <form onsubmit="handleRegister(event)">
+          <div class="input-group">
+            <label>Email</label>
+            <input id="registerEmail" type="email" placeholder="seu@email.com" required />
+          </div>
+          <div class="input-group">
+            <label>Senha</label>
+            <input id="registerPassword" type="password" placeholder="Mínimo 6 caracteres" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Criar Conta</button>
+        </form>
+        <p class="switch-form">
+          Já tem conta? <a href="#" onclick="showLogin(); return false;">Faça login</a>
         </p>
-      </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="auth-footer">
+        <p>🔒 Seus dados estão seguros com criptografia JWT</p>
+      </div>
+
     </div>
   </div>
 
-  <!-- Dashboard -->
-  <div id="dashboard" class="dashboard" style="display:none;">
+  <!-- ==================== DASHBOARD ==================== -->
+  <div id="dashboard" class="dashboard" style="display: none;">
 
     <!-- Sidebar -->
     <aside class="sidebar">
-      <div class="sidebar-brand">JOB-FINDER</div>
+      
+      <div class="sidebar-header">
+        <div class="logo">
+          <span class="logo-icon">💼</span>
+          <h2>Job Tracker</h2>
+        </div>
+      </div>
 
       <nav class="sidebar-nav">
-        <button id="tabApplications" class="sidebar-btn active" onclick="showSection('applications')">
-          📋 Candidaturas
+        <button id="tabApplications" class="nav-item active" onclick="showSection('applications')">
+          <span class="icon">📊</span>
+          Candidaturas
         </button>
-        <button id="tabProfile" class="sidebar-btn" onclick="showSection('profile')">
-          👤 Perfil
+        <button id="tabProfile" class="nav-item" onclick="showSection('profile')">
+          <span class="icon">👤</span>
+          Perfil
         </button>
       </nav>
 
       <div class="sidebar-footer">
-        <div class="sidebar-user">
-          <div class="sidebar-user-label">Logado como</div>
-          <div id="userEmail" class="sidebar-user-email"></div>
+        <div class="user-info">
+          <span class="user-icon">👤</span>
+          <div>
+            <p class="user-label">Logado como</p>
+            <p id="userEmail" class="user-email"></p>
+          </div>
         </div>
-        <button class="btn-secondary" onclick="logout()">Sair</button>
+        <button class="btn btn-secondary" onclick="logout()">Sair</button>
       </div>
+
     </aside>
 
-    <!-- Main content -->
-    <main class="main">
+    <!-- Main Content -->
+    <main class="main-content">
 
-      <!-- SECTION: Applications -->
+      <!-- ========== SECTION: Applications ========== -->
       <section id="sectionApplications">
-
-        <header class="topbar">
-          <div class="brand">Candidaturas</div>
+        
+        <header class="content-header">
+          <div>
+            <h1>Minhas Candidaturas</h1>
+            <p class="subtitle">Acompanhe o status de todas as suas aplicações</p>
+          </div>
+          <button class="btn btn-primary" onclick="showAddModal()">
+            <span>➕</span> Nova Candidatura
+          </button>
         </header>
 
-        <section class="stats">
+        <!-- Stats Grid -->
+        <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-number" id="statEsperando">0</div>
-            <div class="stat-label">Esperando</div>
+            <div class="stat-icon esperando">⏳</div>
+            <div>
+              <p class="stat-label">Esperando</p>
+              <p class="stat-value" id="statEsperando">0</p>
+            </div>
           </div>
           <div class="stat-card">
-            <div class="stat-number" id="statEntrevista">0</div>
-            <div class="stat-label">Entrevista</div>
+            <div class="stat-icon entrevista">🎯</div>
+            <div>
+              <p class="stat-label">Entrevistas</p>
+              <p class="stat-value" id="statEntrevista">0</p>
+            </div>
           </div>
           <div class="stat-card">
-            <div class="stat-number" id="statRejeitado">0</div>
-            <div class="stat-label">Rejeitado</div>
+            <div class="stat-icon rejeitado">❌</div>
+            <div>
+              <p class="stat-label">Rejeitadas</p>
+              <p class="stat-value" id="statRejeitado">0</p>
+            </div>
           </div>
           <div class="stat-card">
-            <div class="stat-number" id="statTotal">0</div>
-            <div class="stat-label">Total</div>
+            <div class="stat-icon total">📝</div>
+            <div>
+              <p class="stat-label">Total</p>
+              <p class="stat-value" id="statTotal">0</p>
+            </div>
           </div>
-        </section>
+        </div>
 
-        <section class="actions">
-          <button class="btn-primary" onclick="showAddModal()">+ Nova candidatura</button>
-        </section>
-
-        <section class="list">
-          <div id="emptyState" class="empty-state" style="display:none;">
-            <h2>Nenhuma candidatura ainda</h2>
-            <p>Clique em “Nova candidatura” para começar.</p>
+        <!-- Applications Container -->
+        <div class="applications-container">
+          
+          <!-- Empty State -->
+          <div id="emptyState" class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3>Nenhuma candidatura ainda</h3>
+            <p>Comece adicionando sua primeira candidatura de emprego!</p>
+            <button class="btn btn-primary" onclick="showAddModal()">
+              ➕ Adicionar Primeira Candidatura
+            </button>
           </div>
 
+          <!-- Applications List -->
           <div id="applicationsList" class="applications-list"></div>
-        </section>
+          
+        </div>
 
       </section>
 
-      <!-- SECTION: Profile -->
-      <section id="sectionProfile" style="display:none;">
-
-        <header class="topbar">
-          <div class="brand">Perfil</div>
+      <!-- ========== SECTION: Profile ========== -->
+      <section id="sectionProfile" style="display: none;">
+        
+        <header class="content-header">
+          <div>
+            <h1>Meu Perfil</h1>
+            <p class="subtitle">Gerencie suas informações de conta</p>
+          </div>
         </header>
 
+        <!-- Profile Info Card -->
         <div class="profile-card">
-          <h2>Informações da conta</h2>
+          <h2>👤 Informações da Conta</h2>
           <div class="profile-row">
             <span class="profile-label">Email:</span>
-            <strong id="profileEmail">—</strong>
+            <strong id="profileEmail" class="profile-value">—</strong>
           </div>
         </div>
 
+        <!-- Security Card -->
         <div class="profile-card">
-          <h2>Segurança</h2>
-
+          <h2>🔒 Segurança</h2>
           <form id="changePasswordForm" onsubmit="handleChangePassword(event)" class="profile-form">
-            <label>Senha atual</label>
-            <input id="currentPassword" type="password" placeholder="Sua senha atual" required />
-
-            <label>Nova senha</label>
-            <input id="newPassword" type="password" placeholder="Mínimo 6 caracteres" required />
-
-            <label>Confirmar nova senha</label>
-            <input id="confirmNewPassword" type="password" placeholder="Repita a nova senha" required />
-
-            <button type="submit" class="btn-primary">Alterar senha</button>
+            <div class="input-group">
+              <label>Senha Atual</label>
+              <input id="currentPassword" type="password" placeholder="Sua senha atual" required />
+            </div>
+            <div class="input-group">
+              <label>Nova Senha</label>
+              <input id="newPassword" type="password" placeholder="Mínimo 6 caracteres" required />
+            </div>
+            <div class="input-group">
+              <label>Confirmar Nova Senha</label>
+              <input id="confirmNewPassword" type="password" placeholder="Repita a nova senha" required />
+            </div>
+            <button type="submit" class="btn btn-primary">Alterar Senha</button>
           </form>
         </div>
 
       </section>
 
     </main>
+
   </div>
 
-  <!-- Modal -->
+  <!-- ==================== MODAL ==================== -->
   <div id="modal" class="modal">
     <div class="modal-content">
+      
       <div class="modal-header">
         <h2 id="modalTitle">Nova Candidatura</h2>
-        <button class="icon-btn" onclick="closeModal()">✖</button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
 
       <form id="applicationForm" onsubmit="handleSubmitApplication(event)">
         <input type="hidden" id="editId" />
+        
+        <div class="input-group">
+          <label>Nome da Vaga *</label>
+          <input id="inputNome" type="text" placeholder="Ex: Desenvolvedor Python Júnior" required />
+        </div>
 
-        <label>Nome</label>
-        <input id="inputNome" type="text" placeholder="Ex: Vaga Frontend Jr" required />
+        <div class="input-group">
+          <label>Empresa *</label>
+          <input id="inputEmpresa" type="text" placeholder="Ex: Google" required />
+        </div>
 
-        <label>Empresa</label>
-        <input id="inputEmpresa" type="text" placeholder="Ex: Stone" required />
-
-        <label>Data</label>
-        <input id="inputData" type="date" required />
-
-        <label>Cargo (Role)</label>
-        <input id="inputRole" type="text" placeholder="Ex: Frontend Developer" required />
-
-        <label>Status</label>
-        <select id="inputStatus" required>
-          <option value="esperando">Esperando</option>
-          <option value="entrevista">Entrevista</option>
-          <option value="rejeitado">Rejeitado</option>
-        </select>
-
-        <label>Chance (%)</label>
-        <div class="chance-wrap">
-          <input id="inputChance" type="range" min="0" max="100" value="50" />
-          <div class="chance-bar">
-            <div id="chanceIndicator" class="chance-indicator"></div>
+        <div class="form-row">
+          <div class="input-group">
+            <label>Data da Candidatura *</label>
+            <input id="inputData" type="date" required />
+          </div>
+          <div class="input-group">
+            <label>Cargo/Função *</label>
+            <input id="inputRole" type="text" placeholder="Ex: Backend Developer" required />
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
-          <button type="submit" class="btn-primary" id="submitBtn">Salvar</button>
+        <div class="form-row">
+          <div class="input-group">
+            <label>Status</label>
+            <select id="inputStatus">
+              <option value="esperando">⏳ Esperando</option>
+              <option value="entrevista">🎯 Entrevista</option>
+              <option value="rejeitado">❌ Rejeitado</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>Chance (%)</label>
+            <input id="inputChance" type="number" min="0" max="100" value="50" placeholder="0-100" />
+            <div class="chance-bar">
+              <div id="chanceIndicator" class="chance-indicator" style="width: 50%"></div>
+            </div>
+          </div>
         </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="submitBtn">Salvar</button>
+        </div>
+        
       </form>
+
     </div>
   </div>
 

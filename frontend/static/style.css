@@ -1,3 +1,4 @@
+/* ==================== VARIABLES ==================== */
 :root {
     --bg-primary: #0a0e14;
     --bg-secondary: #0f1419;
@@ -12,6 +13,7 @@
     --danger: #ff4444;
 }
 
+/* ==================== RESET ==================== */
 * {
     margin: 0;
     padding: 0;
@@ -19,15 +21,15 @@
 }
 
 body {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
     overflow-x: hidden;
 }
 
-/* ========== LOADING ========== */
-.loading {
+/* ==================== LOADING ==================== */
+.loading-overlay {
     position: fixed;
     inset: 0;
     background: var(--bg-primary);
@@ -52,12 +54,13 @@ body {
     to { transform: rotate(360deg); }
 }
 
-.loading p {
+.loading-overlay p {
     font-family: 'JetBrains Mono', monospace;
     color: var(--accent-primary);
+    font-size: 0.9rem;
 }
 
-/* ========== AUTH SCREEN ========== */
+/* ==================== AUTH SCREEN ==================== */
 .auth-screen {
     min-height: 100vh;
     display: flex;
@@ -110,6 +113,7 @@ body {
     font-weight: 700;
     color: var(--accent-primary);
     text-shadow: 0 0 20px var(--accent-glow);
+    letter-spacing: -0.5px;
 }
 
 .tagline {
@@ -123,23 +127,46 @@ body {
     border-radius: 16px;
     padding: 2rem;
     margin-bottom: 1rem;
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1.25rem !important;
 }
 
 .auth-form h2 {
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     font-size: 1.5rem;
+    color: var(--text-primary);
 }
 
+.switch-form {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 1.5rem;
+}
+
+.switch-form a {
+    color: var(--accent-primary);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.switch-form a:hover {
+    text-decoration: underline;
+}
+
+.auth-footer {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+/* ==================== INPUTS & BUTTONS ==================== */
 .input-group {
-    margin-bottom: 0;
+    margin-bottom: 1.25rem;
 }
 
 .input-group label {
-    display: block !important;
-    margin-bottom: 0.5rem !important;
+    display: block;
+    margin-bottom: 0.5rem;
     font-size: 0.9rem;
     font-weight: 500;
     color: var(--text-secondary);
@@ -147,12 +174,11 @@ body {
 
 .input-group input,
 .input-group select {
-    width: 100% !important;
-    display: block !important;
-    padding: 0.875rem 1rem !important;
+    width: 100%;
+    padding: 0.875rem 1rem;
     background: var(--bg-secondary);
     border: 1px solid var(--border);
-    border-radius: 8px !important;
+    border-radius: 8px;
     color: var(--text-primary);
     font-family: 'Space Grotesk', sans-serif;
     font-size: 1rem;
@@ -189,8 +215,8 @@ body {
 .btn-primary {
     background: var(--accent-primary);
     color: var(--bg-primary);
-    width: 100% !important;
     box-shadow: 0 0 20px var(--accent-glow);
+    width: 100%;
 }
 
 .btn-primary:hover {
@@ -202,6 +228,7 @@ body {
     background: var(--bg-secondary);
     color: var(--text-primary);
     border: 1px solid var(--border);
+    width: 100%;
 }
 
 .btn-secondary:hover {
@@ -209,39 +236,15 @@ body {
     color: var(--accent-primary);
 }
 
-.switch-form {
-    text-align: center;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-top: 1rem;
-}
-
-.switch-form a {
-    color: var(--accent-primary);
-    text-decoration: none;
-    font-weight: 600;
-}
-
-.switch-form a:hover {
-    text-decoration: underline;
-}
-
-.auth-footer {
-    text-align: center;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    opacity: 0.7;
-}
-
-/* ========== DASHBOARD LAYOUT ========== */
+/* ==================== DASHBOARD LAYOUT ==================== */
 .dashboard {
     display: flex;
     min-height: 100vh;
 }
 
-/* ========== SIDEBAR (NOVA VERSÃO) ========== */
+/* ==================== SIDEBAR ==================== */
 .sidebar {
-    width: 240px;
+    width: 260px;
     background: var(--bg-card);
     border-right: 1px solid var(--border);
     display: flex;
@@ -250,14 +253,12 @@ body {
     height: 100vh;
     left: 0;
     top: 0;
-    padding: 1.5rem;
     z-index: 100;
 }
 
 .sidebar-header {
-    padding-bottom: 1.5rem;
+    padding: 1.5rem;
     border-bottom: 1px solid var(--border);
-    margin-bottom: 1.5rem;
 }
 
 .sidebar-header .logo h2 {
@@ -266,53 +267,47 @@ body {
 
 .sidebar-nav {
     flex: 1;
+    padding: 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.nav-item,
-.sidebar-btn {
+.nav-item {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     padding: 0.875rem 1rem;
     color: var(--text-secondary);
-    text-decoration: none;
-    border-radius: 8px;
-    margin-bottom: 0.25rem;
-    transition: all 0.3s;
     background: transparent;
     border: none;
+    border-radius: 8px;
     text-align: left;
     cursor: pointer;
     font-size: 0.95rem;
     font-family: 'Space Grotesk', sans-serif;
-    width: 100%;
+    transition: all 0.3s;
+    border: 1px solid transparent;
 }
 
-.nav-item .icon,
-.sidebar-btn .icon {
+.nav-item .icon {
     font-size: 1.25rem;
 }
 
-.nav-item:hover,
-.sidebar-btn:hover {
+.nav-item:hover {
     background: var(--bg-secondary);
     color: var(--text-primary);
 }
 
-.nav-item.active,
-.sidebar-btn.active {
+.nav-item.active {
     background: var(--bg-secondary);
     color: var(--accent-primary);
-    border: 1px solid var(--border);
+    border-color: var(--border);
     box-shadow: 0 0 15px var(--accent-glow);
 }
 
 .sidebar-footer {
-    margin-top: auto;
-    padding-top: 1rem;
+    padding: 1rem;
     border-top: 1px solid var(--border);
 }
 
@@ -330,41 +325,24 @@ body {
     font-size: 1.5rem;
 }
 
-.sidebar-user-label {
+.user-label {
     font-size: 0.75rem;
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
-.user-email,
-.sidebar-user-email {
+.user-email {
     font-size: 0.85rem;
     color: var(--text-primary);
     font-weight: 500;
     word-break: break-all;
 }
 
-.logout-link {
-    font-size: 0.8rem;
-    color: var(--accent-primary);
-    text-decoration: none;
-}
-
-.logout-link:hover {
-    text-decoration: underline;
-}
-
-.sidebar-footer .btn-secondary {
-    width: 100%;
-    margin-top: 0.5rem;
-}
-
-/* ========== MAIN CONTENT ========== */
-.main-content,
-.main {
+/* ==================== MAIN CONTENT ==================== */
+.main-content {
     flex: 1;
-    margin-left: 240px;
+    margin-left: 260px;
     padding: 2rem;
     background: var(--bg-primary);
     min-height: 100vh;
@@ -380,6 +358,7 @@ body {
 .content-header h1 {
     font-size: 2rem;
     margin-bottom: 0.25rem;
+    color: var(--text-primary);
 }
 
 .subtitle {
@@ -387,7 +366,11 @@ body {
     font-size: 0.95rem;
 }
 
-/* ========== STATS GRID ========== */
+.content-header .btn-primary {
+    width: auto;
+}
+
+/* ==================== STATS GRID ==================== */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -451,7 +434,7 @@ body {
     color: var(--text-primary);
 }
 
-/* ========== APPLICATIONS LIST ========== */
+/* ==================== APPLICATIONS ==================== */
 .applications-container {
     background: var(--bg-card);
     border: 1px solid var(--border);
@@ -535,6 +518,7 @@ body {
     justify-content: center;
     font-size: 1.1rem;
     transition: all 0.3s;
+    color: var(--text-secondary);
 }
 
 .icon-btn:hover {
@@ -627,7 +611,7 @@ body {
     transition: width 0.3s;
 }
 
-/* ========== EMPTY STATE ========== */
+/* ==================== EMPTY STATE ==================== */
 .empty-state {
     text-align: center;
     padding: 4rem 2rem;
@@ -650,7 +634,72 @@ body {
     margin-bottom: 2rem;
 }
 
-/* ========== MODAL ========== */
+.empty-state .btn-primary {
+    width: auto;
+}
+
+/* ==================== PROFILE ==================== */
+#sectionProfile {
+    animation: fadeInUp 0.4s ease-out;
+}
+
+.profile-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
+    max-width: 600px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s;
+}
+
+.profile-card:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 10px 40px var(--accent-glow);
+}
+
+.profile-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--accent-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.profile-row {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+}
+
+.profile-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    min-width: 80px;
+}
+
+.profile-value {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.profile-form .btn-primary {
+    margin-top: 0.5rem;
+}
+
+/* ==================== MODAL ==================== */
 .modal {
     display: none;
     position: fixed;
@@ -705,6 +754,7 @@ body {
 
 .modal-header h2 {
     font-size: 1.5rem;
+    color: var(--text-primary);
 }
 
 .modal-close {
@@ -744,98 +794,7 @@ body {
     flex: 1;
 }
 
-/* ========== PROFILE SECTION (NOVA!) ========== */
-#sectionProfile {
-    animation: fadeInUp 0.4s ease-out;
-}
-
-.profile-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    max-width: 600px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s;
-}
-
-.profile-card:hover {
-    border-color: var(--accent-primary);
-    box-shadow: 0 10px 40px var(--accent-glow);
-}
-
-.profile-card h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1.5rem;
-    color: var(--accent-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.profile-card h2::before {
-    content: "👤";
-    font-size: 1.75rem;
-}
-
-.profile-row {
-    display: flex;
-    gap: 0.75rem;
-    font-size: 0.95rem;
-    margin-bottom: 0.75rem;
-    padding: 0.75rem;
-    background: var(--bg-secondary);
-    border-radius: 8px;
-}
-
-.profile-label {
-    color: var(--text-secondary);
-    font-weight: 500;
-    min-width: 80px;
-}
-
-.profile-value {
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-.profile-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-.profile-form label {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.profile-form input {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    border-radius: 8px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border);
-    color: var(--text-primary);
-    font-family: 'Space Grotesk', sans-serif;
-    transition: all 0.3s;
-}
-
-.profile-form input:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px var(--accent-glow);
-}
-
-.profile-form .btn-primary {
-    margin-top: 0.5rem;
-}
-
-/* ========== TOAST ========== */
+/* ==================== TOAST ==================== */
 .toast {
     position: fixed;
     bottom: 2rem;
@@ -867,14 +826,13 @@ body {
     box-shadow: 0 0 30px rgba(255, 68, 68, 0.2);
 }
 
-/* ========== RESPONSIVE ========== */
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 768px) {
     .sidebar {
         transform: translateX(-100%);
     }
 
-    .main-content,
-    .main {
+    .main-content {
         margin-left: 0;
         padding: 1rem;
     }
@@ -899,10 +857,6 @@ body {
     .app-info {
         grid-template-columns: 1fr;
     }
-
-    .dashboard {
-        padding-left: 0;
-    }
 }
 
 @media (max-width: 480px) {
@@ -916,5 +870,9 @@ body {
 
     .stat-value {
         font-size: 1.5rem;
+    }
+
+    .modal-content {
+        margin: 1rem;
     }
 }
