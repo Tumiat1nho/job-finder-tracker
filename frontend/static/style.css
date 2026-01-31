@@ -906,3 +906,82 @@ body {
 .sidebar-footer .btn-secondary {
   width: 100%;
 }
+
+/* =================================================
+   AUTH FIX (LOGIN/REGISTER) - OVERRIDE
+   Cole no FINAL do style.css
+================================================= */
+
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 520px;
+  padding: 28px 28px 22px;
+  border-radius: 16px;
+}
+
+/* garante que o form seja coluna SEM inline estranho */
+.auth-form {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-top: 14px;
+}
+
+/* labels sempre em cima, sem ficar do lado */
+.auth-form label {
+  display: block !important;
+  margin: 10px 0 6px !important;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* inputs ocupando 100% */
+.auth-form input {
+  width: 100% !important;
+  display: block !important;
+  padding: 12px 14px !important;
+  border-radius: 10px !important;
+}
+
+/* botão grande, central e bonitinho */
+.auth-form button {
+  width: 100% !important;
+  display: block !important;
+  margin-top: 12px !important;
+  padding: 12px 14px !important;
+  border-radius: 10px !important;
+  font-weight: 700;
+}
+
+/* deixa o título e subtítulo alinhados */
+.auth-container h1 {
+  margin-bottom: 6px;
+}
+
+.subtitle {
+  margin-bottom: 18px;
+}
+
+/* link “Criar conta”/“Fazer login” mais alinhado */
+.switch-auth {
+  margin-top: 10px !important;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* evita qualquer regra antiga que tente colocar label/input lado a lado */
+.auth-form .row,
+.auth-form .field,
+.auth-form .form-row {
+  display: block !important;
+}
