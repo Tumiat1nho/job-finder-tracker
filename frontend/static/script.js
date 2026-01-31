@@ -215,6 +215,9 @@ async function loadProfile() {
       // Profile section
       const profileEmail = document.getElementById("profileEmail");
       if (profileEmail) profileEmail.textContent = data.email;
+      
+      // Carregar estatísticas
+      loadStats();
     } else if (response.status === 401) {
       logout();
       showToast("Sessão expirada. Faça login novamente.", "error");
@@ -608,4 +611,251 @@ function escapeHtml(v) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+// ==================== ADICIONE ESTA FUNÇÃO NO script.js ====================
+
+// Carregar estatísticas do usuário
+async function loadStats() {
+    try {
+        const response = await fetch(apiUrl('/users/me/stats'), {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const stats = await response.json();
+            renderStats(stats);
+        } else {
+            console.error('Erro ao carregar estatísticas');
+        }
+    } catch (error) {
+        console.error('Erro:', error);
+    }
+}
+
+// Renderizar estatísticas na tela
+function renderStats(stats) {
+    const container = document.getElementById('statsContainer');
+    if (!container) return;
+
+    // Formatar mês (YYYY-MM → Janeiro/2025)
+    const formatMonth = (mesStr) => {
+        if (!mesStr) return '—';
+        const [year, month] = mesStr.split('-');
+        const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                       'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+        return `${meses[parseInt(month) - 1]}/${year}`;
+    };
+
+    // Calcular porcentagens
+    const percEsperando = stats.total > 0 ? Math.round((stats.esperando / stats.total) * 100) : 0;
+    const percEntrevista = stats.total > 0 ? Math.round((stats.entrevista / stats.total) * 100) : 0;
+    const percRejeitado = stats.total > 0 ? Math.round((stats.rejeitado / stats.total) * 100) : 0;
+
+    container.innerHTML = `
+        <div class="stats-grid-profile">
+            <!-- Card 1: Resumo -->
+            <div class="stat-card-profile">
+                <h3>📊 Resumo Geral</h3>
+                <div class="stat-row">
+                    <span>📝 Total de candidaturas:</span>
+                    <strong>${stats.total}</strong>
+                </div>
+                <div class="stat-row">
+                    <span>⏳ Esperando:</span>
+                    <strong>${stats.esperando} (${percEsperando}%)</strong>
+                </div>
+                <div class="stat-row">
+                    <span>🎯 Entrevistas:</span>
+                    <strong>${stats.entrevista} (${percEntrevista}%)</strong>
+                </div>
+                <div class="stat-row">
+                    <span>❌ Rejeitadas:</span>
+                    <strong>${stats.rejeitado} (${percRejeitado}%)</strong>
+                </div>
+            </div>
+
+            <!-- Card 2: Performance -->
+            <div class="stat-card-profile">
+                <h3>📈 Performance</h3>
+                <div class="stat-row">
+                    <span>💯 Taxa de conversão:</span>
+                    <strong class="${stats.taxa_conversao >= 20 ? 'text-success' : 'text-warning'}">${stats.taxa_conversao}%</strong>
+                </div>
+                <div class="stat-row">
+                    <span>🏢 Empresa top:</span>
+                    <strong>${stats.empresa_top || '—'} ${stats.empresa_top ? `(${stats.empresa_top_count}x)` : ''}</strong>
+                </div>
+                <div class="stat-row">
+                    <span>📅 Mês mais ativo:</span>
+                    <strong>${formatMonth(stats.mes_mais_ativo)} ${stats.mes_mais_ativo ? `(${stats.mes_mais_ativo_count})` : ''}</strong>
+                </div>
+            </div>
+
+            <!-- Card 3: Timeline -->
+            <div class="stat-card-profile">
+                <h3>🕐 Timeline</h3>
+                <div class="stat-row">
+                    <span>🎬 Primeira candidatura:</span>
+                    <strong>${stats.primeira_candidatura ? formatDate(stats.primeira_candidatura) : '—'}</strong>
+                </div>
+                <div class="stat-row">
+                    <span>⭐ Última entrevista:</span>
+                    <strong>${stats.ultima_entrevista ? formatDate(stats.ultima_entrevista) : '—'}</strong>
+                </div>
+                <div class="stat-row">
+                    <span>📊 Dias de uso:</span>
+                    <strong>${stats.primeira_candidatura ? Math.floor((new Date() - new Date(stats.primeira_candidatura)) / (1000 * 60 * 60 * 24)) : 0} dias</strong>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ==================== MODIFIQUE A FUNÇÃO loadProfile() ====================
+// Adicione a chamada loadStats() dentro dela:
+
+async function loadProfile() {
+    showLoading();
+
+    try {
+        const response = await fetch(apiUrl(ENDPOINTS.me), {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (response.ok) {
+            const user = await response.json();
+            document.getElementById('profileEmail').textContent = user.email;
+            
+            // ← ADICIONE ESTA LINHA:
+            loadStats(); // Carregar estatísticas
+            
+        } else if (response.status === 401) {
+            logout();
+            showToast('Sessão expirada. Faça login novamente.', 'error');
+        }
+    } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+    } finally {
+        hideLoading();
+    }
+}
+// ==================== STATISTICS FUNCTIONS ====================
+
+// Função auxiliar para formatar data
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+}
+
+// Carregar estatísticas do usuário
+async function loadStats() {
+  try {
+    const response = await fetch(apiUrl('/users/me/stats'), {
+      headers: authHeader()
+    });
+
+    if (response.ok) {
+      const stats = await response.json();
+      renderStats(stats);
+    } else {
+      console.error('Erro ao carregar estatísticas');
+      document.getElementById('statsContainer').innerHTML = '<p class="loading-stats">Erro ao carregar estatísticas</p>';
+    }
+  } catch (error) {
+    console.error('Erro:', error);
+    document.getElementById('statsContainer').innerHTML = '<p class="loading-stats">Erro ao carregar estatísticas</p>';
+  }
+}
+
+// Renderizar estatísticas na tela
+function renderStats(stats) {
+  const container = document.getElementById('statsContainer');
+  if (!container) return;
+
+  // Formatar mês (YYYY-MM → Janeiro/2025)
+  const formatMonth = (mesStr) => {
+    if (!mesStr) return '—';
+    const [year, month] = mesStr.split('-');
+    const meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+                   'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+    return `${meses[parseInt(month) - 1]}/${year}`;
+  };
+
+  // Calcular porcentagens
+  const percEsperando = stats.total > 0 ? Math.round((stats.esperando / stats.total) * 100) : 0;
+  const percEntrevista = stats.total > 0 ? Math.round((stats.entrevista / stats.total) * 100) : 0;
+  const percRejeitado = stats.total > 0 ? Math.round((stats.rejeitado / stats.total) * 100) : 0;
+
+  // Calcular dias de uso
+  let diasUso = 0;
+  if (stats.primeira_candidatura) {
+    const primeira = new Date(stats.primeira_candidatura);
+    const hoje = new Date();
+    diasUso = Math.floor((hoje - primeira) / (1000 * 60 * 60 * 24));
+  }
+
+  container.innerHTML = `
+    <div class="stats-grid-profile">
+      <!-- Card 1: Resumo -->
+      <div class="stat-card-profile">
+        <h3>📊 Resumo Geral</h3>
+        <div class="stat-row">
+          <span>📝 Total de candidaturas:</span>
+          <strong>${stats.total}</strong>
+        </div>
+        <div class="stat-row">
+          <span>⏳ Esperando:</span>
+          <strong>${stats.esperando} (${percEsperando}%)</strong>
+        </div>
+        <div class="stat-row">
+          <span>🎯 Entrevistas:</span>
+          <strong>${stats.entrevista} (${percEntrevista}%)</strong>
+        </div>
+        <div class="stat-row">
+          <span>❌ Rejeitadas:</span>
+          <strong>${stats.rejeitado} (${percRejeitado}%)</strong>
+        </div>
+      </div>
+
+      <!-- Card 2: Performance -->
+      <div class="stat-card-profile">
+        <h3>📈 Performance</h3>
+        <div class="stat-row">
+          <span>💯 Taxa de conversão:</span>
+          <strong class="${stats.taxa_conversao >= 20 ? 'text-success' : 'text-warning'}">${stats.taxa_conversao}%</strong>
+        </div>
+        <div class="stat-row">
+          <span>🏢 Empresa top:</span>
+          <strong>${stats.empresa_top || '—'} ${stats.empresa_top ? `(${stats.empresa_top_count}x)` : ''}</strong>
+        </div>
+        <div class="stat-row">
+          <span>📅 Mês mais ativo:</span>
+          <strong>${formatMonth(stats.mes_mais_ativo)} ${stats.mes_mais_ativo ? `(${stats.mes_mais_ativo_count})` : ''}</strong>
+        </div>
+      </div>
+
+      <!-- Card 3: Timeline -->
+      <div class="stat-card-profile">
+        <h3>🕐 Timeline</h3>
+        <div class="stat-row">
+          <span>🎬 Primeira candidatura:</span>
+          <strong>${stats.primeira_candidatura ? formatDate(stats.primeira_candidatura) : '—'}</strong>
+        </div>
+        <div class="stat-row">
+          <span>⭐ Última entrevista:</span>
+          <strong>${stats.ultima_entrevista ? formatDate(stats.ultima_entrevista) : '—'}</strong>
+        </div>
+        <div class="stat-row">
+          <span>📊 Dias de uso:</span>
+          <strong>${diasUso} dias</strong>
+        </div>
+      </div>
+    </div>
+  `;
 }
