@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
 
 from .database import engine, Base
-from .routers import auth_router, applications
+from .routers import auth_router, applications, users  # ← ADICIONADO users
 
 # ========== CRIAR TABELAS NO BANCO ==========
 # IMPORTANTE: Isso cria as tabelas automaticamente ao iniciar
@@ -40,6 +40,7 @@ app.add_middleware(
 # Incluir routers
 app.include_router(auth_router.router)
 app.include_router(applications.router)
+app.include_router(users.router)  # ← ADICIONADO users router
 
 
 @app.get("/", tags=["Root"])
