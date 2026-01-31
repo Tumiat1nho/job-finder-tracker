@@ -21,29 +21,24 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 def register(user: UserCreate, db: Session = Depends(get_db)):
     """
     Registrar novo usuário
-    
+
     - **email**: Email válido
     - **password**: Senha com no mínimo 6 caracteres
     """
-    # Verifica se usuário já existe
     db_user = get_user_by_email(db, email=user.email)
     if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Email já registrado"
         )
-    
-    # Cria novo usuário
+
     hashed_password = get_password_hash(user.password)
-    new_user = User(
-        email=user.email,
-        hashed_password=hashed_password
-    )
-    
+    new_user = User(email=user.email, hashed_password=hashed_password)
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    
+
     return new_user
 
 
@@ -54,13 +49,12 @@ def login(
 ):
     """
     Login de usuário
-    
+
     Retorna um token JWT que deve ser usado nas requisições autenticadas
-    
+
     - **username**: Email do usuário
     - **password**: Senha do usuário
     """
-    # Autentica usuário
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -68,12 +62,11 @@ def login(
             detail="Email ou senha incorretos",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    
-    # Cria token
+
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email},
         expires_delta=access_token_expires
     )
-    
+
     return {"access_token": access_token, "token_type": "bearer"}

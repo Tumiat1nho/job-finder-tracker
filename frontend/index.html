@@ -1,235 +1,165 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Tracker - Gerencie suas Candidaturas</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Finder Tracker</title>
+
+  <!-- ✅ Caminho absoluto -->
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
-    <!-- Loading Screen -->
-    <div id="loading" class="loading">
-        <div class="loader"></div>
-        <p>Carregando...</p>
+
+  <!-- Loading -->
+  <div id="loading" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Carregando...</p>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+
+  <!-- Auth Screen -->
+  <div id="authScreen" class="auth-screen">
+
+    <div class="auth-container">
+
+      <h1>JOB-FINDER-TRACKER</h1>
+      <p class="subtitle">Organize suas candidaturas de um jeito simples.</p>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+        <h2>Login</h2>
+
+        <label>Email</label>
+        <input id="loginEmail" type="email" placeholder="seuemail@exemplo.com" required />
+
+        <label>Senha</label>
+        <input id="loginPassword" type="password" placeholder="********" required />
+
+        <button type="submit">Entrar</button>
+
+        <p class="switch-auth">
+          Não tem conta?
+          <a href="#" onclick="showRegister()">Criar conta</a>
+        </p>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="auth-form" style="display:none;" onsubmit="handleRegister(event)">
+        <h2>Criar conta</h2>
+
+        <label>Email</label>
+        <input id="registerEmail" type="email" placeholder="seuemail@exemplo.com" required />
+
+        <label>Senha</label>
+        <input id="registerPassword" type="password" placeholder="********" required />
+
+        <button type="submit">Criar</button>
+
+        <p class="switch-auth">
+          Já tem conta?
+          <a href="#" onclick="showLogin()">Fazer login</a>
+        </p>
+      </form>
+
     </div>
+  </div>
 
-    <!-- Auth Screen -->
-    <div id="authScreen" class="auth-screen">
-        <div class="auth-container">
-            <div class="auth-header">
-                <div class="logo">
-                    <span class="logo-icon">💼</span>
-                    <h1>Job Tracker</h1>
-                </div>
-                <p class="tagline">Gerencie suas candidaturas de emprego</p>
-            </div>
+  <!-- Dashboard -->
+  <div id="dashboard" class="dashboard" style="display:none;">
 
-            <!-- Login Form -->
-            <div id="loginForm" class="auth-form">
-                <h2>Login</h2>
-                <form onsubmit="handleLogin(event)">
-                    <div class="input-group">
-                        <label>Email</label>
-                        <input type="email" id="loginEmail" required placeholder="seu@email.com">
-                    </div>
-                    <div class="input-group">
-                        <label>Senha</label>
-                        <input type="password" id="loginPassword" required placeholder="••••••">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Entrar</button>
-                </form>
-                <p class="switch-form">
-                    Não tem conta? <a href="#" onclick="showRegister()">Registre-se</a>
-                </p>
-            </div>
+    <header class="topbar">
+      <div class="brand">JOB-FINDER-TRACKER</div>
 
-            <!-- Register Form -->
-            <div id="registerForm" class="auth-form" style="display: none;">
-                <h2>Criar Conta</h2>
-                <form onsubmit="handleRegister(event)">
-                    <div class="input-group">
-                        <label>Email</label>
-                        <input type="email" id="registerEmail" required placeholder="seu@email.com">
-                    </div>
-                    <div class="input-group">
-                        <label>Senha</label>
-                        <input type="password" id="registerPassword" required placeholder="Mínimo 6 caracteres">
-                    </div>
-                    <button type="submit" class="btn btn-primary">Criar Conta</button>
-                </form>
-                <p class="switch-form">
-                    Já tem conta? <a href="#" onclick="showLogin()">Faça login</a>
-                </p>
-            </div>
+      <div class="user-area">
+        <span id="userEmail"></span>
+        <button class="btn-secondary" onclick="logout()">Sair</button>
+      </div>
+    </header>
 
-            <div class="auth-footer">
-                <p>🔒 Seus dados estão seguros com criptografia JWT</p>
-            </div>
+    <main class="main">
+      <section class="stats">
+        <div class="stat-card">
+          <div class="stat-number" id="statEsperando">0</div>
+          <div class="stat-label">Esperando</div>
         </div>
-    </div>
-
-    <!-- Dashboard -->
-    <div id="dashboard" class="dashboard" style="display: none;">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">
-                    <span class="logo-icon">💼</span>
-                    <h2>Job Tracker</h2>
-                </div>
-            </div>
-
-            <nav class="sidebar-nav">
-                <a href="#" class="nav-item active">
-                    <span class="icon">📊</span>
-                    Dashboard
-                </a>
-                <a href="#" class="nav-item" onclick="showAddModal()">
-                    <span class="icon">➕</span>
-                    Nova Candidatura
-                </a>
-            </nav>
-
-            <div class="sidebar-footer">
-                <div class="user-info">
-                    <span class="user-icon">👤</span>
-                    <div>
-                        <p class="user-email" id="userEmail"></p>
-                        <a href="#" onclick="logout()" class="logout-link">Sair</a>
-                    </div>
-                </div>
-            </div>
-        </aside>
-
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Header -->
-            <header class="content-header">
-                <div>
-                    <h1>Minhas Candidaturas</h1>
-                    <p class="subtitle">Acompanhe o status de todas as suas aplicações</p>
-                </div>
-                <button class="btn btn-primary" onclick="showAddModal()">
-                    <span>➕</span> Nova Candidatura
-                </button>
-            </header>
-
-            <!-- Stats Cards -->
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <div class="stat-icon esperando">⏳</div>
-                    <div>
-                        <p class="stat-label">Esperando</p>
-                        <p class="stat-value" id="statEsperando">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon entrevista">🎯</div>
-                    <div>
-                        <p class="stat-label">Entrevistas</p>
-                        <p class="stat-value" id="statEntrevista">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon rejeitado">❌</div>
-                    <div>
-                        <p class="stat-label">Rejeitadas</p>
-                        <p class="stat-value" id="statRejeitado">0</p>
-                    </div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-icon total">📝</div>
-                    <div>
-                        <p class="stat-label">Total</p>
-                        <p class="stat-value" id="statTotal">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Applications List -->
-            <div class="applications-container">
-                <div id="applicationsList" class="applications-list">
-                    <!-- Cards will be inserted here -->
-                </div>
-
-                <!-- Empty State -->
-                <div id="emptyState" class="empty-state">
-                    <div class="empty-icon">📭</div>
-                    <h3>Nenhuma candidatura ainda</h3>
-                    <p>Comece adicionando sua primeira candidatura de emprego!</p>
-                    <button class="btn btn-primary" onclick="showAddModal()">
-                        ➕ Adicionar Primeira Candidatura
-                    </button>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <!-- Add/Edit Modal -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Nova Candidatura</h2>
-                <button class="modal-close" onclick="closeModal()">✕</button>
-            </div>
-            <form id="applicationForm" onsubmit="handleSubmitApplication(event)">
-                <input type="hidden" id="editId">
-                
-                <div class="input-group">
-                    <label>Nome da Vaga *</label>
-                    <input type="text" id="inputNome" required placeholder="Ex: Desenvolvedor Python Júnior">
-                </div>
-
-                <div class="input-group">
-                    <label>Empresa *</label>
-                    <input type="text" id="inputEmpresa" required placeholder="Ex: Google">
-                </div>
-
-                <div class="form-row">
-                    <div class="input-group">
-                        <label>Data da Candidatura *</label>
-                        <input type="date" id="inputData" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Cargo/Função *</label>
-                        <input type="text" id="inputRole" required placeholder="Ex: Backend Developer">
-                    </div>
-                </div>
-
-                <div class="form-row">
-                    <div class="input-group">
-                        <label>Status</label>
-                        <select id="inputStatus">
-                            <option value="esperando">⏳ Esperando</option>
-                            <option value="entrevista">🎯 Entrevista</option>
-                            <option value="rejeitado">❌ Rejeitado</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Chance (%)</label>
-                        <input type="number" id="inputChance" min="0" max="100" value="50" placeholder="0-100">
-                        <div class="chance-bar">
-                            <div id="chanceIndicator" class="chance-indicator" style="width: 50%"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="submitBtn">Salvar</button>
-                </div>
-            </form>
+        <div class="stat-card">
+          <div class="stat-number" id="statEntrevista">0</div>
+          <div class="stat-label">Entrevista</div>
         </div>
+        <div class="stat-card">
+          <div class="stat-number" id="statRejeitado">0</div>
+          <div class="stat-label">Rejeitado</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </section>
+
+      <section class="actions">
+        <button class="btn-primary" onclick="showAddModal()">+ Nova candidatura</button>
+      </section>
+
+      <section class="list">
+        <div id="emptyState" class="empty-state" style="display:none;">
+          <h2>Nenhuma candidatura ainda</h2>
+          <p>Clique em “Nova candidatura” para começar.</p>
+        </div>
+
+        <div id="applicationsList" class="applications-list"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Nova Candidatura</h2>
+        <button class="icon-btn" onclick="closeModal()">✖</button>
+      </div>
+
+      <form id="applicationForm" onsubmit="handleSubmitApplication(event)">
+        <input type="hidden" id="editId" />
+
+        <label>Nome</label>
+        <input id="inputNome" type="text" placeholder="Ex: Vaga Frontend Jr" required />
+
+        <label>Empresa</label>
+        <input id="inputEmpresa" type="text" placeholder="Ex: Stone" required />
+
+        <label>Data</label>
+        <input id="inputData" type="date" required />
+
+        <label>Cargo (Role)</label>
+        <input id="inputRole" type="text" placeholder="Ex: Frontend Developer" required />
+
+        <label>Status</label>
+        <select id="inputStatus" required>
+          <option value="esperando">Esperando</option>
+          <option value="entrevista">Entrevista</option>
+          <option value="rejeitado">Rejeitado</option>
+        </select>
+
+        <label>Chance (%)</label>
+        <div class="chance-wrap">
+          <input id="inputChance" type="range" min="0" max="100" value="50" />
+          <div class="chance-bar">
+            <div id="chanceIndicator" class="chance-indicator"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-secondary" onclick="closeModal()">Cancelar</button>
+          <button type="submit" class="btn-primary" id="submitBtn">Salvar</button>
+        </div>
+      </form>
     </div>
+  </div>
 
-    <!-- Toast Notifications -->
-    <div id="toast" class="toast"></div>
-
-    <script src="static/script.js"></script>
+  <!-- ✅ Caminho absoluto -->
+  <script src="/static/script.js"></script>
 </body>
 </html>

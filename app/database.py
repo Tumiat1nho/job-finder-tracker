@@ -1,26 +1,40 @@
+import os
+from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import os
-from dotenv import load_dotenv
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./job_tracker.db")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Create engine
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL não definida")
+
+# Corrige postgres:// -> postgresql:// (Railway/Heroku)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+connect_args = {}
+
+# SQLite local
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+
 engine = create_engine(
-    DATABASE_URL, 
-    connect_args={"check_same_thread": False}  # Necessário apenas para SQLite
+    DATABASE_URL,
+    connect_args=connect_args,
+    pool_pre_ping=True
 )
 
-# Create session
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
 
-# Base class for models
 Base = declarative_base()
 
-# Dependency para obter a sessão do banco
 def get_db():
     db = SessionLocal()
     try:
