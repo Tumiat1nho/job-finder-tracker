@@ -3,16 +3,27 @@ Router para autenticação via Google OAuth (Firebase).
 Permite login/registro usando conta Google através do Firebase Authentication.
 """
 
+import json
 import os
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
-import httpx
+import firebase_admin
+from firebase_admin import credentials, auth as firebase_auth
 
 from ..database import get_db
 from ..models import User
 from ..auth import create_access_token
+
+# Inicializa o Firebase Admin SDK
+if not firebase_admin._apps:
+    service_account_json = os.getenv("FIREBASE_SERVICE_ACCOUNT_KEY")
+    if service_account_json:
+        cred = credentials.Certificate(json.loads(service_account_json))
+        firebase_admin.initialize_app(cred)
+    else:
+        firebase_admin.initialize_app()
 
 router = APIRouter(prefix="/auth/google", tags=["Google Auth"])
 
@@ -29,9 +40,9 @@ class GoogleAuthResponse(BaseModel):
     user: dict
 
 
-async def verify_firebase_token(id_token: str) -> dict:
+def verify_firebase_token(id_token: str) -> dict:
     """
-    Verifica o ID token do Firebase com a API do Google.
+    Verifica o ID token do Firebase usando o Firebase Admin SDK.
 
     Args:
         id_token: Token ID fornecido pelo Firebase Authentication
@@ -43,39 +54,22 @@ async def verify_firebase_token(id_token: str) -> dict:
         HTTPException: Se o token for inválido ou expirado
     """
     try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"https://www.googleapis.com/oauth2/v3/tokeninfo?id_token={id_token}"
-            )
-            
-            if response.status_code != 200:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Token inválido ou expirado"
-                )
-            
-            token_data = response.json()
-
-            # Pega o Firebase Messaging Sender ID das variáveis de ambiente
-            # (que é o mesmo que o aud esperado)
-            expected_aud = os.getenv("FIREBASE_MESSAGING_SENDER_ID", "483077331516")
-            
-            if token_data.get("aud") != expected_aud:
-                raise HTTPException(
-                    status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Token de projeto inválido"
-                )
-            
-            return {
-                "email": token_data.get("email"),
-                "name": token_data.get("name"),
-                "picture": token_data.get("picture"),
-                "sub": token_data.get("sub")
-            }
-    except httpx.RequestError as e:
+        decoded_token = firebase_auth.verify_id_token(id_token)
+        return {
+            "email": decoded_token.get("email"),
+            "name": decoded_token.get("name"),
+            "picture": decoded_token.get("picture"),
+            "sub": decoded_token.get("uid")
+        }
+    except firebase_admin.exceptions.FirebaseError:
         raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Erro ao verificar token com Google"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido ou expirado"
+        )
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token inválido"
         )
 
 
@@ -88,7 +82,7 @@ async def google_login(
     Login/Registro com Google via Firebase.
     Verifica o token, busca ou cria o usuário, e retorna um token JWT.
     """
-    user_data = await verify_firebase_token(auth_request.id_token)
+    user_data = verify_firebase_token(auth_request.id_token)
 
     email = user_data["email"]
 
