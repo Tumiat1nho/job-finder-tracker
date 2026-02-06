@@ -9,9 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, RedirectResponse
 
 from .database import engine, Base
-from .routers import auth_router, applications, users
-
-from .routers import auth_router, applications, users, google_auth, config
+from .routers import auth_router, applications, users, google_auth, config, interviews
 
 # Cria todas as tabelas do banco de dados na inicialização
 print("🔄 Criando tabelas no banco de dados...")
@@ -50,6 +48,7 @@ app.include_router(applications.router)
 app.include_router(users.router)
 app.include_router(google_auth.router)
 app.include_router(config.router)
+app.include_router(interviews.router)
 
 @app.get("/", tags=["Root"])
 def root():

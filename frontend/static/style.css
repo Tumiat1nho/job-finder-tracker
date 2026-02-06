@@ -1135,3 +1135,295 @@ body {
 [data-theme="light"] .btn-google:hover {
     background: #f8f9fa;
 }
+
+/* ==================== INTERVIEWS SECTION ==================== */
+
+.upcoming-interviews-section {
+    margin-bottom: 2rem;
+}
+
+.upcoming-interviews-section h3 {
+    font-size: 1.25rem;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.interviews-upcoming-list {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.upcoming-interview-card {
+    min-width: 280px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    border-left: 4px solid var(--accent-primary);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.upcoming-interview-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.upcoming-interview-card .interview-date {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--accent-primary);
+    margin-bottom: 0.5rem;
+}
+
+.upcoming-interview-card .interview-company {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.upcoming-interview-card .interview-role {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.upcoming-interview-card .interview-type-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.75rem;
+}
+
+.interviews-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.5rem;
+    min-height: 400px;
+}
+
+.interviews-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.interview-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.interview-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateX(4px);
+}
+
+.interview-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.interview-card-title {
+    flex: 1;
+}
+
+.interview-card-title h4 {
+    font-size: 1.1rem;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.interview-card-title .company-name {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.interview-card-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.interview-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.interview-meta-item .label {
+    color: var(--text-secondary);
+}
+
+.interview-meta-item .value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.interview-card-content {
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.interview-notes-preview {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-height: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.interview-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+}
+
+.interview-status-badge {
+    padding: 0.4rem 0.875rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.interview-status-badge.scheduled {
+    background: rgba(100, 149, 237, 0.15);
+    color: #6495ed;
+    border: 1px solid rgba(100, 149, 237, 0.3);
+}
+
+.interview-status-badge.completed {
+    background: rgba(0, 255, 159, 0.15);
+    color: var(--accent-primary);
+    border: 1px solid rgba(0, 255, 159, 0.3);
+}
+
+.interview-status-badge.cancelled {
+    background: rgba(255, 68, 68, 0.15);
+    color: #ff4444;
+    border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.interview-status-badge.rescheduled {
+    background: rgba(255, 170, 0, 0.15);
+    color: #ffaa00;
+    border: 1px solid rgba(255, 170, 0, 0.3);
+}
+
+.interview-rating {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 1rem;
+    color: #ffd700;
+}
+
+.modal-large {
+    max-width: 800px;
+}
+
+.form-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.form-section h3 {
+    font-size: 1rem;
+    color: var(--accent-primary);
+    margin-bottom: 1rem;
+}
+
+textarea {
+    width: 100%;
+    padding: 0.875rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    resize: vertical;
+    transition: all 0.3s;
+}
+
+textarea:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.rating-input {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rating-input input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--bg-secondary);
+    height: 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+}
+
+.rating-input input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--accent-primary);
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.rating-input span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.25rem;
+    color: var(--accent-primary);
+    min-width: 2ch;
+}
+
+.stat-icon.scheduled {
+    background: rgba(100, 149, 237, 0.1);
+}
+
+.stat-icon.completed {
+    background: rgba(0, 255, 159, 0.1);
+}
+
+.stat-icon.cancelled {
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.stat-icon.avg-rating {
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.text-secondary {
+    color: var(--text-secondary);
+}

@@ -122,6 +122,10 @@
           <span class="icon">👤</span>
           Perfil
         </button>
+        <button id="tabInterviews" class="nav-item" onclick="showSection('interviews')">
+          <span class="icon">📅</span>
+          Entrevistas
+        </button>
       </nav>
 
       <div class="sidebar-footer">
@@ -256,6 +260,70 @@
 
       </section>
 
+      <section id="sectionInterviews" style="display: none;">
+
+        <header class="content-header">
+          <div>
+            <h1>Historico de Entrevistas</h1>
+            <p class="subtitle">Acompanhe e prepare-se para suas entrevistas</p>
+          </div>
+          <button class="btn btn-primary" onclick="showAddInterviewModal()">
+            <span>+</span> Nova Entrevista
+          </button>
+        </header>
+
+        <div class="upcoming-interviews-section">
+          <h3>Proximas Entrevistas</h3>
+          <div id="upcomingInterviewsList" class="interviews-upcoming-list">
+            <p class="text-secondary">Nenhuma entrevista agendada</p>
+          </div>
+        </div>
+
+        <div class="stats-grid interview-stats">
+          <div class="stat-card">
+            <div class="stat-icon scheduled">📅</div>
+            <div>
+              <p class="stat-label">Agendadas</p>
+              <p class="stat-value" id="statScheduled">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon completed">✅</div>
+            <div>
+              <p class="stat-label">Realizadas</p>
+              <p class="stat-value" id="statCompleted">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon cancelled">❌</div>
+            <div>
+              <p class="stat-label">Canceladas</p>
+              <p class="stat-value" id="statCancelled">0</p>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon avg-rating">⭐</div>
+            <div>
+              <p class="stat-label">Media Autoavaliacao</p>
+              <p class="stat-value" id="statAvgRating">-</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="interviews-container">
+          <div id="emptyInterviewState" class="empty-state">
+            <div class="empty-icon">📅</div>
+            <h3>Nenhuma entrevista registrada</h3>
+            <p>Adicione sua primeira entrevista para comecar a acompanhar!</p>
+            <button class="btn btn-primary" onclick="showAddInterviewModal()">
+              + Adicionar Primeira Entrevista
+            </button>
+          </div>
+          <div id="interviewsList" class="interviews-list"></div>
+        </div>
+
+      </section>
+
     </main>
 
   </div>
@@ -315,6 +383,134 @@
           <button type="submit" class="btn btn-primary" id="submitBtn">Salvar</button>
         </div>
         
+      </form>
+
+    </div>
+  </div>
+
+  <div id="interviewModal" class="modal">
+    <div class="modal-content modal-large">
+
+      <div class="modal-header">
+        <h2 id="interviewModalTitle">Nova Entrevista</h2>
+        <button class="modal-close" onclick="closeInterviewModal()">x</button>
+      </div>
+
+      <form id="interviewForm" onsubmit="handleSubmitInterview(event)">
+        <input type="hidden" id="editInterviewId" />
+
+        <div class="form-section">
+          <h3>Informacoes Basicas</h3>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label>Candidatura *</label>
+              <select id="inputInterviewApplication" required>
+                <option value="">Selecione a candidatura...</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Tipo de Entrevista *</label>
+              <select id="inputInterviewType" required>
+                <option value="phone">Telefone</option>
+                <option value="video">Video</option>
+                <option value="in_person">Presencial</option>
+                <option value="technical">Tecnica</option>
+                <option value="behavioral">Comportamental</option>
+                <option value="hr">RH</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label>Data e Hora *</label>
+              <input id="inputInterviewDatetime" type="datetime-local" required />
+            </div>
+            <div class="input-group">
+              <label>Duracao (minutos)</label>
+              <input id="inputInterviewDuration" type="number" min="1" max="480" placeholder="Ex: 60" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label>Status</label>
+              <select id="inputInterviewStatus">
+                <option value="scheduled">Agendada</option>
+                <option value="completed">Realizada</option>
+                <option value="cancelled">Cancelada</option>
+                <option value="rescheduled">Reagendada</option>
+              </select>
+            </div>
+            <div class="input-group">
+              <label>Link da Reuniao</label>
+              <input id="inputMeetingLink" type="url" placeholder="https://..." />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Entrevistador</h3>
+          <div class="form-row">
+            <div class="input-group">
+              <label>Nome</label>
+              <input id="inputInterviewerName" type="text" placeholder="Nome do entrevistador" />
+            </div>
+            <div class="input-group">
+              <label>Cargo/Funcao</label>
+              <input id="inputInterviewerRole" type="text" placeholder="Ex: Tech Lead, HR Manager" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Preparacao</h3>
+          <div class="input-group">
+            <label>Notas de Preparacao</label>
+            <textarea id="inputPreInterviewNotes" rows="3" placeholder="Pontos importantes para revisar, perguntas para fazer..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-section" id="postInterviewSection">
+          <h3>Pos-Entrevista</h3>
+
+          <div class="input-group">
+            <label>Perguntas Feitas</label>
+            <textarea id="inputQuestionsAsked" rows="3" placeholder="Perguntas que foram feitas durante a entrevista..."></textarea>
+          </div>
+
+          <div class="input-group">
+            <label>Suas Respostas/Notas</label>
+            <textarea id="inputAnswersNotes" rows="3" placeholder="Principais pontos discutidos, suas respostas..."></textarea>
+          </div>
+
+          <div class="input-group">
+            <label>Feedback Recebido</label>
+            <textarea id="inputFeedbackReceived" rows="2" placeholder="Feedback do entrevistador..."></textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="input-group">
+              <label>Autoavaliacao (1-5)</label>
+              <div class="rating-input">
+                <input id="inputSelfRating" type="range" min="1" max="5" value="3" />
+                <span id="ratingValue">3</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="input-group">
+            <label>Notas Pos-Entrevista</label>
+            <textarea id="inputPostInterviewNotes" rows="2" placeholder="Reflexoes, proximos passos..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-secondary" onclick="closeInterviewModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary" id="submitInterviewBtn">Salvar</button>
+        </div>
+
       </form>
 
     </div>

@@ -25,6 +25,9 @@ const ENDPOINTS = {
   login: "/auth/login",
   me: "/users/me",
   changePassword: "/users/me/password",
+  interviews: "/interviews/",
+  interviewById: (id) => `/interviews/${id}`,
+  upcomingInterviews: "/interviews/upcoming",
 };
 
 // Estado global da aplicação
@@ -69,30 +72,44 @@ function hideLoading() {
 
 // ==================== NAVEGAÇÃO ====================
 
-// Alterna entre seções (Candidaturas / Perfil)
+// Alterna entre seções (Candidaturas / Perfil / Entrevistas)
 function showSection(section) {
   const sectionApplications = document.getElementById("sectionApplications");
   const sectionProfile = document.getElementById("sectionProfile");
+  const sectionInterviews = document.getElementById("sectionInterviews");
 
   const tabApplications = document.getElementById("tabApplications");
   const tabProfile = document.getElementById("tabProfile");
+  const tabInterviews = document.getElementById("tabInterviews");
 
-  if (!sectionApplications || !sectionProfile || !tabApplications || !tabProfile) return;
+  // Esconde todas as seções
+  if (sectionApplications) sectionApplications.style.display = "none";
+  if (sectionProfile) sectionProfile.style.display = "none";
+  if (sectionInterviews) sectionInterviews.style.display = "none";
+
+  // Remove active de todas as tabs
+  if (tabApplications) tabApplications.classList.remove("active");
+  if (tabProfile) tabProfile.classList.remove("active");
+  if (tabInterviews) tabInterviews.classList.remove("active");
 
   if (section === "profile") {
-    sectionApplications.style.display = "none";
-    sectionProfile.style.display = "block";
-    tabApplications.classList.remove("active");
-    tabProfile.classList.add("active");
+    if (sectionProfile) sectionProfile.style.display = "block";
+    if (tabProfile) tabProfile.classList.add("active");
     loadProfile();
     return;
   }
 
+  if (section === "interviews") {
+    if (sectionInterviews) sectionInterviews.style.display = "block";
+    if (tabInterviews) tabInterviews.classList.add("active");
+    loadInterviews();
+    loadUpcomingInterviews();
+    return;
+  }
+
   // Default: mostra candidaturas
-  sectionProfile.style.display = "none";
-  sectionApplications.style.display = "block";
-  tabProfile.classList.remove("active");
-  tabApplications.classList.add("active");
+  if (sectionApplications) sectionApplications.style.display = "block";
+  if (tabApplications) tabApplications.classList.add("active");
 }
 
 // ==================== TELAS DE AUTENTICAÇÃO ====================
@@ -894,5 +911,479 @@ async function handleGoogleLogin() {
   }
 }
 
-// Expõe a função de login Google globalmente para uso via onclick no HTML
+// ==================== ENTREVISTAS ====================
+
+// Carrega todas as entrevistas do usuario
+async function loadInterviews() {
+  showLoading();
+
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.interviews), {
+      headers: authHeader(),
+    });
+
+    if (response.ok) {
+      const interviews = await safeJson(response);
+      const list = Array.isArray(interviews) ? interviews : [];
+      renderInterviews(list);
+      updateInterviewStats(list);
+    } else if (response.status === 401) {
+      logout();
+      showToast("Sessao expirada. Faca login novamente.", "error");
+    } else {
+      const data = await safeJson(response);
+      showToast(data?.detail || "Erro ao carregar entrevistas", "error");
+    }
+  } catch (err) {
+    showToast("Erro de conexao com o servidor", "error");
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Carrega proximas entrevistas agendadas
+async function loadUpcomingInterviews() {
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.upcomingInterviews), {
+      headers: authHeader(),
+    });
+
+    if (response.ok) {
+      const interviews = await safeJson(response);
+      renderUpcomingInterviews(interviews || []);
+    }
+  } catch (err) {
+    console.error("Error loading upcoming interviews:", err);
+  }
+}
+
+// Renderiza cards de proximas entrevistas
+function renderUpcomingInterviews(interviews) {
+  const container = document.getElementById("upcomingInterviewsList");
+  if (!container) return;
+
+  if (!interviews || interviews.length === 0) {
+    container.innerHTML = '<p class="text-secondary">Nenhuma entrevista agendada</p>';
+    return;
+  }
+
+  container.innerHTML = interviews.map(interview => `
+    <div class="upcoming-interview-card" onclick="editInterview(${interview.id})">
+      <div class="interview-date">${formatDateTime(interview.interview_datetime)}</div>
+      <div class="interview-company">${escapeHtml(interview.application_empresa || '')}</div>
+      <div class="interview-role">${escapeHtml(interview.application_nome || '')}</div>
+      <span class="interview-type-badge">${getInterviewTypeText(interview.interview_type)}</span>
+    </div>
+  `).join("");
+}
+
+// Renderiza lista de entrevistas como cards
+function renderInterviews(interviews) {
+  const container = document.getElementById("interviewsList");
+  const emptyState = document.getElementById("emptyInterviewState");
+
+  if (!container || !emptyState) return;
+
+  if (!interviews || interviews.length === 0) {
+    container.innerHTML = "";
+    emptyState.style.display = "block";
+    return;
+  }
+
+  emptyState.style.display = "none";
+
+  container.innerHTML = interviews.map(interview => `
+    <div class="interview-card" data-id="${interview.id}">
+      <div class="interview-card-header">
+        <div class="interview-card-title">
+          <h4>${escapeHtml(interview.application_nome || 'Candidatura')}</h4>
+          <span class="company-name">${escapeHtml(interview.application_empresa || '')}</span>
+        </div>
+        <div class="app-actions">
+          <button class="icon-btn" onclick="editInterview(${interview.id})" title="Editar">&#9998;</button>
+          <button class="icon-btn" onclick="deleteInterview(${interview.id})" title="Deletar">&#128465;</button>
+        </div>
+      </div>
+
+      <div class="interview-card-meta">
+        <div class="interview-meta-item">
+          <span class="label">Data:</span>
+          <span class="value">${formatDateTime(interview.interview_datetime)}</span>
+        </div>
+        <div class="interview-meta-item">
+          <span class="label">Tipo:</span>
+          <span class="value">${getInterviewTypeText(interview.interview_type)}</span>
+        </div>
+        ${interview.interviewer_name ? `
+        <div class="interview-meta-item">
+          <span class="label">Entrevistador:</span>
+          <span class="value">${escapeHtml(interview.interviewer_name)}</span>
+        </div>
+        ` : ''}
+        ${interview.duration_minutes ? `
+        <div class="interview-meta-item">
+          <span class="label">Duracao:</span>
+          <span class="value">${interview.duration_minutes} min</span>
+        </div>
+        ` : ''}
+      </div>
+
+      ${interview.questions_asked || interview.pre_interview_notes ? `
+      <div class="interview-card-content">
+        <p class="interview-notes-preview">
+          ${escapeHtml((interview.questions_asked || interview.pre_interview_notes || '').substring(0, 150))}...
+        </p>
+      </div>
+      ` : ''}
+
+      <div class="interview-card-footer">
+        <span class="interview-status-badge ${interview.status}">
+          ${getInterviewStatusIcon(interview.status)} ${getInterviewStatusText(interview.status)}
+        </span>
+        ${interview.self_rating ? `
+        <div class="interview-rating">
+          ${renderStars(interview.self_rating)}
+        </div>
+        ` : ''}
+      </div>
+    </div>
+  `).join("");
+}
+
+// Atualiza estatisticas de entrevistas
+function updateInterviewStats(interviews) {
+  const stats = {
+    scheduled: 0,
+    completed: 0,
+    cancelled: 0,
+    rescheduled: 0,
+    totalRating: 0,
+    ratingCount: 0,
+  };
+
+  interviews.forEach(interview => {
+    if (stats[interview.status] !== undefined) {
+      stats[interview.status]++;
+    }
+    if (interview.self_rating) {
+      stats.totalRating += interview.self_rating;
+      stats.ratingCount++;
+    }
+  });
+
+  setText("statScheduled", stats.scheduled);
+  setText("statCompleted", stats.completed);
+  setText("statCancelled", stats.cancelled + stats.rescheduled);
+
+  const avgRating = stats.ratingCount > 0
+    ? (stats.totalRating / stats.ratingCount).toFixed(1)
+    : "-";
+  setText("statAvgRating", avgRating);
+}
+
+// Abre modal para adicionar nova entrevista
+async function showAddInterviewModal() {
+  setText("interviewModalTitle", "Nova Entrevista");
+  setText("submitInterviewBtn", "Salvar");
+
+  const form = document.getElementById("interviewForm");
+  if (form) form.reset();
+
+  const editId = document.getElementById("editInterviewId");
+  if (editId) editId.value = "";
+
+  // Define datetime padrao para agora
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  const inputDatetime = document.getElementById("inputInterviewDatetime");
+  if (inputDatetime) inputDatetime.value = now.toISOString().slice(0, 16);
+
+  // Carrega candidaturas para o dropdown
+  await loadApplicationsForDropdown();
+
+  updateRatingDisplay(3);
+
+  const modal = document.getElementById("interviewModal");
+  if (modal) modal.classList.add("active");
+}
+
+// Carrega candidaturas para o dropdown
+async function loadApplicationsForDropdown() {
+  const select = document.getElementById("inputInterviewApplication");
+  if (!select) return;
+
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.applications), {
+      headers: authHeader(),
+    });
+
+    if (response.ok) {
+      const applications = await safeJson(response);
+      select.innerHTML = '<option value="">Selecione a candidatura...</option>' +
+        applications.map(app =>
+          `<option value="${app.id}">${escapeHtml(app.nome)} - ${escapeHtml(app.empresa)}</option>`
+        ).join("");
+    }
+  } catch (err) {
+    console.error("Error loading applications for dropdown:", err);
+  }
+}
+
+// Fecha o modal de entrevista
+function closeInterviewModal() {
+  const modal = document.getElementById("interviewModal");
+  if (modal) modal.classList.remove("active");
+}
+
+// Click fora do modal fecha
+document.getElementById("interviewModal")?.addEventListener("click", (e) => {
+  if (e.target?.id === "interviewModal") closeInterviewModal();
+});
+
+// Busca entrevista e abre modal de edicao
+async function editInterview(id) {
+  showLoading();
+
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.interviewById(id)), {
+      headers: authHeader(),
+    });
+
+    if (response.ok) {
+      const interview = await safeJson(response);
+
+      setText("interviewModalTitle", "Editar Entrevista");
+      setText("submitInterviewBtn", "Atualizar");
+
+      const editId = document.getElementById("editInterviewId");
+      if (editId) editId.value = interview.id;
+
+      await loadApplicationsForDropdown();
+
+      setValue("inputInterviewApplication", interview.application_id);
+      setValue("inputInterviewType", interview.interview_type);
+
+      // Formata datetime para o input
+      if (interview.interview_datetime) {
+        const dt = new Date(interview.interview_datetime);
+        dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
+        setValue("inputInterviewDatetime", dt.toISOString().slice(0, 16));
+      }
+
+      setValue("inputInterviewDuration", interview.duration_minutes);
+      setValue("inputInterviewStatus", interview.status);
+      setValue("inputMeetingLink", interview.meeting_link);
+      setValue("inputInterviewerName", interview.interviewer_name);
+      setValue("inputInterviewerRole", interview.interviewer_role);
+      setValue("inputPreInterviewNotes", interview.pre_interview_notes);
+      setValue("inputQuestionsAsked", interview.questions_asked);
+      setValue("inputAnswersNotes", interview.answers_notes);
+      setValue("inputFeedbackReceived", interview.feedback_received);
+      setValue("inputSelfRating", interview.self_rating || 3);
+      setValue("inputPostInterviewNotes", interview.post_interview_notes);
+
+      updateRatingDisplay(interview.self_rating || 3);
+
+      document.getElementById("interviewModal")?.classList.add("active");
+    } else if (response.status === 401) {
+      logout();
+      showToast("Sessao expirada. Faca login novamente.", "error");
+    } else {
+      const data = await safeJson(response);
+      showToast(data?.detail || "Erro ao carregar entrevista", "error");
+    }
+  } catch (err) {
+    showToast("Erro de conexao", "error");
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Processa submit do formulario de entrevista
+async function handleSubmitInterview(e) {
+  e.preventDefault();
+  showLoading();
+
+  const editId = document.getElementById("editInterviewId")?.value;
+
+  const interviewData = {
+    application_id: parseInt(document.getElementById("inputInterviewApplication")?.value, 10),
+    interview_type: document.getElementById("inputInterviewType")?.value,
+    interview_datetime: document.getElementById("inputInterviewDatetime")?.value,
+    duration_minutes: parseInt(document.getElementById("inputInterviewDuration")?.value, 10) || null,
+    status: document.getElementById("inputInterviewStatus")?.value,
+    meeting_link: document.getElementById("inputMeetingLink")?.value || null,
+    interviewer_name: document.getElementById("inputInterviewerName")?.value || null,
+    interviewer_role: document.getElementById("inputInterviewerRole")?.value || null,
+    pre_interview_notes: document.getElementById("inputPreInterviewNotes")?.value || null,
+    questions_asked: document.getElementById("inputQuestionsAsked")?.value || null,
+    answers_notes: document.getElementById("inputAnswersNotes")?.value || null,
+    feedback_received: document.getElementById("inputFeedbackReceived")?.value || null,
+    self_rating: parseInt(document.getElementById("inputSelfRating")?.value, 10) || null,
+    post_interview_notes: document.getElementById("inputPostInterviewNotes")?.value || null,
+  };
+
+  try {
+    const url = editId
+      ? apiUrl(ENDPOINTS.interviewById(editId))
+      : apiUrl(ENDPOINTS.interviews);
+
+    const method = editId ? "PUT" : "POST";
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        ...authHeader(),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(interviewData),
+    });
+
+    if (response.ok) {
+      showToast(editId ? "Entrevista atualizada!" : "Entrevista criada!", "success");
+      closeInterviewModal();
+      loadInterviews();
+      loadUpcomingInterviews();
+    } else if (response.status === 401) {
+      logout();
+      showToast("Sessao expirada. Faca login novamente.", "error");
+    } else {
+      const data = await safeJson(response);
+      showToast(data?.detail || "Erro ao salvar entrevista", "error");
+    }
+  } catch (err) {
+    showToast("Erro de conexao com o servidor", "error");
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Deleta uma entrevista apos confirmacao
+async function deleteInterview(id) {
+  if (!confirm("Tem certeza que deseja deletar esta entrevista?")) return;
+
+  showLoading();
+
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.interviewById(id)), {
+      method: "DELETE",
+      headers: authHeader(),
+    });
+
+    if (response.ok) {
+      showToast("Entrevista deletada!", "success");
+      loadInterviews();
+      loadUpcomingInterviews();
+    } else if (response.status === 401) {
+      logout();
+      showToast("Sessao expirada. Faca login novamente.", "error");
+    } else {
+      const data = await safeJson(response);
+      showToast(data?.detail || "Erro ao deletar entrevista", "error");
+    }
+  } catch (err) {
+    showToast("Erro de conexao", "error");
+    console.error(err);
+  } finally {
+    hideLoading();
+  }
+}
+
+// Helpers para entrevistas
+function getInterviewTypeText(type) {
+  const types = {
+    phone: "Telefone",
+    video: "Video",
+    in_person: "Presencial",
+    technical: "Tecnica",
+    behavioral: "Comportamental",
+    hr: "RH"
+  };
+  return types[type] || type;
+}
+
+function getInterviewStatusText(status) {
+  const texts = {
+    scheduled: "Agendada",
+    completed: "Realizada",
+    cancelled: "Cancelada",
+    rescheduled: "Reagendada"
+  };
+  return texts[status] || status;
+}
+
+function getInterviewStatusIcon(status) {
+  const icons = {
+    scheduled: "&#128197;",
+    completed: "&#10003;",
+    cancelled: "&#10007;",
+    rescheduled: "&#128260;"
+  };
+  return icons[status] || "&#128221;";
+}
+
+function formatDateTime(dateTimeStr) {
+  if (!dateTimeStr) return "";
+  const date = new Date(dateTimeStr);
+  return isNaN(date.getTime())
+    ? String(dateTimeStr)
+    : date.toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+}
+
+function renderStars(rating) {
+  let stars = "";
+  for (let i = 1; i <= 5; i++) {
+    stars += i <= rating ? "&#9733;" : "&#9734;";
+  }
+  return stars;
+}
+
+function updateRatingDisplay(value) {
+  const display = document.getElementById("ratingValue");
+  if (display) display.textContent = value;
+}
+
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+// Event listener para slider de rating
+document.getElementById("inputSelfRating")?.addEventListener("input", (e) => {
+  updateRatingDisplay(e.target.value);
+});
+
+// Expõe as funções globalmente para uso via onclick/onsubmit no HTML
 window.handleGoogleLogin = handleGoogleLogin;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.handleChangePassword = handleChangePassword;
+window.handleSubmitApplication = handleSubmitApplication;
+window.showLogin = showLogin;
+window.showRegister = showRegister;
+window.showSection = showSection;
+window.logout = logout;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.editApplication = editApplication;
+window.deleteApplication = deleteApplication;
+window.toggleTheme = toggleTheme;
+window.showAddInterviewModal = showAddInterviewModal;
+window.closeInterviewModal = closeInterviewModal;
+window.editInterview = editInterview;
+window.deleteInterview = deleteInterview;
+window.handleSubmitInterview = handleSubmitInterview;
