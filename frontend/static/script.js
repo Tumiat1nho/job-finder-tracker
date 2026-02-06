@@ -894,5 +894,18 @@ async function handleGoogleLogin() {
   }
 }
 
-// Expõe a função de login Google globalmente para uso via onclick no HTML
+// Expõe as funções globalmente para uso via onclick/onsubmit no HTML
 window.handleGoogleLogin = handleGoogleLogin;
+window.handleLogin = handleLogin;
+window.handleRegister = handleRegister;
+window.handleChangePassword = handleChangePassword;
+window.handleSubmitApplication = handleSubmitApplication;
+window.showLogin = showLogin;
+window.showRegister = showRegister;
+window.showSection = showSection;
+window.logout = logout;
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.editApplication = editApplication;
+window.deleteApplication = deleteApplication;
+window.toggleTheme = toggleTheme;
