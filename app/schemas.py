@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr, Field, validator
 from typing import Optional
 from datetime import datetime
-from .models import StatusEnum
+from .models import StatusEnum, InterviewTypeEnum, InterviewStatusEnum
 
 
 # ========== SCHEMAS DE USUÁRIO ==========
@@ -99,3 +99,61 @@ class ApplicationResponse(ApplicationBase):
 
     class Config:
         from_attributes = True
+
+
+# ========== SCHEMAS DE ENTREVISTA ==========
+
+class InterviewBase(BaseModel):
+    """Schema base para entrevista com todos os campos."""
+    interview_datetime: datetime = Field(..., description="Data e hora da entrevista")
+    interview_type: InterviewTypeEnum = Field(..., description="Tipo da entrevista")
+    interviewer_name: Optional[str] = Field(None, max_length=100, description="Nome do entrevistador")
+    interviewer_role: Optional[str] = Field(None, max_length=100, description="Cargo do entrevistador")
+    duration_minutes: Optional[int] = Field(None, ge=1, le=480, description="Duracao em minutos (1-480)")
+    status: InterviewStatusEnum = Field(default=InterviewStatusEnum.SCHEDULED)
+    questions_asked: Optional[str] = Field(None, description="Perguntas feitas")
+    answers_notes: Optional[str] = Field(None, description="Notas de respostas/discussao")
+    feedback_received: Optional[str] = Field(None, description="Feedback recebido")
+    self_rating: Optional[int] = Field(None, ge=1, le=5, description="Autoavaliacao (1-5)")
+    pre_interview_notes: Optional[str] = Field(None, description="Notas de preparacao")
+    post_interview_notes: Optional[str] = Field(None, description="Notas pos-entrevista")
+    meeting_link: Optional[str] = Field(None, description="Link da reuniao")
+
+
+class InterviewCreate(InterviewBase):
+    """Schema para criacao de nova entrevista."""
+    application_id: int = Field(..., description="ID da candidatura relacionada")
+
+
+class InterviewUpdate(BaseModel):
+    """Schema para atualizacao de entrevista (todos os campos opcionais)."""
+    interview_datetime: Optional[datetime] = None
+    interview_type: Optional[InterviewTypeEnum] = None
+    interviewer_name: Optional[str] = Field(None, max_length=100)
+    interviewer_role: Optional[str] = Field(None, max_length=100)
+    duration_minutes: Optional[int] = Field(None, ge=1, le=480)
+    status: Optional[InterviewStatusEnum] = None
+    questions_asked: Optional[str] = None
+    answers_notes: Optional[str] = None
+    feedback_received: Optional[str] = None
+    self_rating: Optional[int] = Field(None, ge=1, le=5)
+    pre_interview_notes: Optional[str] = None
+    post_interview_notes: Optional[str] = None
+    meeting_link: Optional[str] = None
+
+
+class InterviewResponse(InterviewBase):
+    """Schema de resposta com dados completos da entrevista."""
+    id: int
+    application_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class InterviewWithApplication(InterviewResponse):
+    """Schema de resposta com dados da candidatura incluidos."""
+    application_nome: Optional[str] = None
+    application_empresa: Optional[str] = None

@@ -19,6 +19,28 @@ class StatusEnum(str, enum.Enum):
     ENTREVISTA = "entrevista"
 
 
+class InterviewTypeEnum(str, enum.Enum):
+    """
+    Enum para os tipos de entrevista.
+    """
+    PHONE = "phone"
+    VIDEO = "video"
+    IN_PERSON = "in_person"
+    TECHNICAL = "technical"
+    BEHAVIORAL = "behavioral"
+    HR = "hr"
+
+
+class InterviewStatusEnum(str, enum.Enum):
+    """
+    Enum para o status da entrevista.
+    """
+    SCHEDULED = "scheduled"
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    RESCHEDULED = "rescheduled"
+
+
 class User(Base):
     """
     Modelo de usuário do sistema.
@@ -75,3 +97,61 @@ class Application(Base):
 
     # Relacionamento N:1 com User (várias candidaturas pertencem a um usuário)
     owner = relationship("User", back_populates="applications")
+
+    # Relacionamento 1:N com Interview (uma candidatura pode ter várias entrevistas)
+    interviews = relationship("Interview", back_populates="application", cascade="all, delete-orphan")
+
+
+class Interview(Base):
+    """
+    Modelo de entrevista de emprego.
+
+    Attributes:
+        id: Identificador único da entrevista
+        application_id: ID da candidatura relacionada
+        interview_datetime: Data e hora da entrevista
+        interview_type: Tipo da entrevista (phone, video, in_person, technical, behavioral, hr)
+        interviewer_name: Nome do entrevistador
+        interviewer_role: Cargo/função do entrevistador
+        duration_minutes: Duração estimada/real em minutos
+        status: Status da entrevista (scheduled, completed, cancelled, rescheduled)
+        questions_asked: Perguntas feitas durante a entrevista
+        answers_notes: Notas sobre respostas/discussões
+        feedback_received: Feedback recebido após entrevista
+        self_rating: Autoavaliação de 1 a 5
+        pre_interview_notes: Notas de preparação antes da entrevista
+        post_interview_notes: Notas/reflexões após a entrevista
+        meeting_link: Link para reunião online
+        created_at: Data de criação do registro
+        updated_at: Data da última atualização
+    """
+    __tablename__ = "interviews"
+
+    id = Column(Integer, primary_key=True, index=True)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False)
+
+    # Detalhes básicos da entrevista
+    interview_datetime = Column(DateTime, nullable=False)
+    interview_type = Column(SQLEnum(InterviewTypeEnum), nullable=False)
+    interviewer_name = Column(String, nullable=True)
+    interviewer_role = Column(String, nullable=True)
+    duration_minutes = Column(Integer, nullable=True)
+    status = Column(SQLEnum(InterviewStatusEnum), default=InterviewStatusEnum.SCHEDULED)
+
+    # Campos de conteúdo
+    questions_asked = Column(String, nullable=True)
+    answers_notes = Column(String, nullable=True)
+    feedback_received = Column(String, nullable=True)
+    self_rating = Column(Integer, nullable=True)
+
+    # Campos de preparação
+    pre_interview_notes = Column(String, nullable=True)
+    post_interview_notes = Column(String, nullable=True)
+    meeting_link = Column(String, nullable=True)
+
+    # Timestamps
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    # Relacionamento N:1 com Application
+    application = relationship("Application", back_populates="interviews")
