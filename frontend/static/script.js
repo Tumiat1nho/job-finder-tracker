@@ -694,7 +694,6 @@ async function loadStats() {
 
     if (response.ok) {
       const stats = await response.json();
-      console.log('📊 Stats carregadas:', stats);
       renderStats(stats);
     } else {
       console.error('❌ Erro ao carregar estatísticas:', response.status);
@@ -852,9 +851,6 @@ async function handleGoogleLogin() {
   showLoading();
   
   try {
-    console.log('🔵 Iniciando login com Google...');
-
-    
     // Aguardar Firebase estar pronto
     await firebaseReady;
     
@@ -865,8 +861,6 @@ async function handleGoogleLogin() {
     const result = await signInWithPopup(auth, googleProvider);
 
     const idToken = await result.user.getIdToken();
-
-    console.log('🔥 Firebase autenticado! Enviando para backend...');
 
     const response = await fetch(apiUrl('/auth/google/login'), {
       method: 'POST',
@@ -889,7 +883,6 @@ async function handleGoogleLogin() {
         localStorage.setItem('user_picture', data.user.picture || '');
       }
 
-      console.log('✅ Login com Google concluído!');
       showToast(`Bem-vindo, ${data.user.name || data.user.email}!`, 'success');
       showDashboard();
       loadProfile();

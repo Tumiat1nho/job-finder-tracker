@@ -32,8 +32,6 @@ async function initializeFirebase() {
     
     const firebaseConfig = await response.json();
     
-    console.log('🔥 Firebase config carregada do backend!');
-    
     // Inicializar Firebase
     firebaseApp = initializeApp(firebaseConfig);
     auth = getAuth(firebaseApp);
