@@ -287,12 +287,20 @@ body {
 }
 
 .sidebar-header {
-    padding: 1.5rem;
+    padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.sidebar-header .logo {
+    margin-bottom: 0;
 }
 
 .sidebar-header .logo h2 {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
 }
 
 .sidebar-nav {
@@ -1458,12 +1466,6 @@ textarea:focus {
 }
 
 /* ==================== NOTIFICATIONS ==================== */
-
-.sidebar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
 
 .notification-bell-wrapper {
     position: relative;
