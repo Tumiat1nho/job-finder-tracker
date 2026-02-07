@@ -172,11 +172,9 @@ async function handleRegister(e) {
       if (loginEmail) loginEmail.value = email || "";
     } else {
       showToast(data?.detail || "Erro ao criar conta", "error");
-      console.error("Register error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão com o servidor", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -215,11 +213,9 @@ async function handleLogin(e) {
       loadApplications();
     } else {
       showToast(data?.detail || "Email ou senha incorretos", "error");
-      console.error("Login error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão com o servidor", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -262,10 +258,8 @@ async function loadProfile() {
       showToast("Sessão expirada. Faça login novamente.", "error");
     } else {
       showToast(data?.detail || "Erro ao carregar perfil", "error");
-      console.error("loadProfile error:", response.status, data);
     }
   } catch (err) {
-    console.error(err);
   }
 }
 
@@ -318,10 +312,8 @@ async function handleChangePassword(e) {
     }
 
     showToast(data?.detail || "Erro ao alterar senha", "error");
-    console.error("changePassword error:", response.status, data);
   } catch (err) {
     showToast("Erro de conexão com o servidor", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -349,11 +341,9 @@ async function loadApplications() {
     } else {
       const data = await safeJson(response);
       showToast(data?.detail || "Erro ao carregar candidaturas", "error");
-      console.error("loadApplications error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão com o servidor", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -508,11 +498,9 @@ async function editApplication(id) {
     } else {
       const data = await safeJson(response);
       showToast(data?.detail || "Erro ao carregar candidatura", "error");
-      console.error("editApplication error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -567,11 +555,9 @@ async function handleSubmitApplication(e) {
     } else {
       const data = await safeJson(response);
       showToast(data?.detail || "Erro ao salvar candidatura", "error");
-      console.error("handleSubmitApplication error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão com o servidor", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -599,11 +585,9 @@ async function deleteApplication(id) {
     } else {
       const data = await safeJson(response);
       showToast(data?.detail || "Erro ao deletar candidatura", "error");
-      console.error("deleteApplication error:", response.status, data);
     }
   } catch (err) {
     showToast("Erro de conexão", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -675,15 +659,12 @@ function escapeHtml(v) {
     .replaceAll("'", "&#039;");
 }
 
-// loucura 
-
 // ==================== ESTATÍSTICAS ====================
 
 // Busca estatísticas do usuário na API e renderiza na seção de perfil
 async function loadStats() {
   const container = document.getElementById('statsContainer');
   if (!container) {
-    console.warn('⚠️ Container de stats não encontrado');
     return;
   }
 
@@ -696,11 +677,9 @@ async function loadStats() {
       const stats = await response.json();
       renderStats(stats);
     } else {
-      console.error('❌ Erro ao carregar estatísticas:', response.status);
       container.innerHTML = '<p class="loading-stats">❌ Erro ao carregar estatísticas</p>';
     }
   } catch (error) {
-    console.error('❌ Erro ao buscar stats:', error);
     container.innerHTML = '<p class="loading-stats">❌ Erro de conexão</p>';
   }
 }
@@ -888,11 +867,9 @@ async function handleGoogleLogin() {
       loadProfile();
       loadApplications();
     } else {
-      console.error('❌ Erro no backend:', data);
       showToast(data.detail || 'Erro ao fazer login com Google', 'error');
     }
   } catch (error) {
-    console.error('❌ Erro no login Google:', error);
 
     if (error.code === 'auth/popup-closed-by-user') {
       showToast('Login cancelado', 'error');
@@ -931,7 +908,6 @@ async function loadInterviews() {
     }
   } catch (err) {
     showToast("Erro de conexao com o servidor", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -949,7 +925,6 @@ async function loadUpcomingInterviews() {
       renderUpcomingInterviews(interviews || []);
     }
   } catch (err) {
-    console.error("Error loading upcoming interviews:", err);
   }
 }
 
@@ -1121,7 +1096,6 @@ async function loadApplicationsForDropdown() {
         ).join("");
     }
   } catch (err) {
-    console.error("Error loading applications for dropdown:", err);
   }
 }
 
@@ -1190,7 +1164,6 @@ async function editInterview(id) {
     }
   } catch (err) {
     showToast("Erro de conexao", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -1250,7 +1223,6 @@ async function handleSubmitInterview(e) {
     }
   } catch (err) {
     showToast("Erro de conexao com o servidor", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }
@@ -1281,7 +1253,6 @@ async function deleteInterview(id) {
     }
   } catch (err) {
     showToast("Erro de conexao", "error");
-    console.error(err);
   } finally {
     hideLoading();
   }

@@ -3,6 +3,7 @@ Aplicação principal FastAPI para o Job Application Tracker.
 Sistema para gerenciamento de candidaturas de emprego com autenticação JWT e Google OAuth.
 """
 
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -12,9 +13,7 @@ from .database import engine, Base
 from .routers import auth_router, applications, users, google_auth, config, interviews
 
 # Cria todas as tabelas do banco de dados na inicialização
-print("🔄 Criando tabelas no banco de dados...")
 Base.metadata.create_all(bind=engine)
-print("✅ Tabelas criadas com sucesso!")
 
 # Inicializa a aplicação FastAPI
 app = FastAPI(
@@ -29,17 +28,15 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="frontend/static"), name="static")
 
 # Configuração de CORS para permitir requisições do frontend
+cors_origins = os.getenv("CORS_ORIGINS", "").split(",") if os.getenv("CORS_ORIGINS") else [
+    "http://localhost:8000",
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://*.onrender.com",
-        "https://*.railway.app",
-        "http://localhost:8000",
-    ],
+    allow_origins=cors_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 # Registra os routers da aplicação

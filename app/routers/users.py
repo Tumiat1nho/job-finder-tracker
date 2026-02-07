@@ -132,8 +132,7 @@ def get_user_stats(
         
         mes_mais_ativo = mes_query[0] if mes_query else None
         mes_mais_ativo_count = mes_query[1] if mes_query else 0
-    except Exception as e:
-        print(f"Erro ao calcular mês mais ativo: {e}")
+    except Exception:
         mes_mais_ativo = None
         mes_mais_ativo_count = 0
     
