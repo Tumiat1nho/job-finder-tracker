@@ -675,6 +675,8 @@ function escapeHtml(v) {
     .replaceAll("'", "&#039;");
 }
 
+// loucura 
+
 // ==================== ESTATÍSTICAS ====================
 
 // Busca estatísticas do usuário na API e renderiza na seção de perfil
@@ -1350,16 +1352,6 @@ function renderStars(rating) {
 function updateRatingDisplay(value) {
   const display = document.getElementById("ratingValue");
   if (display) display.textContent = value;
-}
-
-function escapeHtml(str) {
-  if (!str) return "";
-  return String(str)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
 }
 
 // Event listener para slider de rating
