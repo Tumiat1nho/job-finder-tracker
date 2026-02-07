@@ -28,11 +28,13 @@ const ENDPOINTS = {
   interviews: "/interviews/",
   interviewById: (id) => `/interviews/${id}`,
   upcomingInterviews: "/interviews/upcoming",
+  notifications: "/notifications/",
 };
 
 // Estado global da aplicação
 let token = localStorage.getItem("token");  // Token JWT armazenado
 let currentUser = null;  // Dados do usuário autenticado
+let notificationInterval = null;  // Interval ID para refresh de notificacoes
 
 // Inicialização quando o DOM estiver carregado
 document.addEventListener("DOMContentLoaded", () => {
@@ -51,6 +53,8 @@ document.addEventListener("DOMContentLoaded", () => {
     showDashboard();
     loadProfile();
     loadApplications();
+    loadNotifications();
+    startNotificationPolling();
   } else {
     showAuth();
   }
@@ -211,6 +215,9 @@ async function handleLogin(e) {
       showSection("applications");
       loadProfile();
       loadApplications();
+      loadNotifications();
+      startNotificationPolling();
+      showLoginReminders();
     } else {
       showToast(data?.detail || "Email ou senha incorretos", "error");
     }
@@ -226,6 +233,7 @@ function logout() {
   localStorage.removeItem("token");
   token = null;
   currentUser = null;
+  stopNotificationPolling();
   showAuth();
   showToast("Logout realizado com sucesso", "success");
 }
@@ -866,6 +874,9 @@ async function handleGoogleLogin() {
       showDashboard();
       loadProfile();
       loadApplications();
+      loadNotifications();
+      startNotificationPolling();
+      showLoginReminders();
     } else {
       showToast(data.detail || 'Erro ao fazer login com Google', 'error');
     }
@@ -1323,6 +1334,165 @@ document.getElementById("inputSelfRating")?.addEventListener("input", (e) => {
   updateRatingDisplay(e.target.value);
 });
 
+// ==================== NOTIFICACOES ====================
+
+async function loadNotifications() {
+  if (!token) return;
+
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.notifications), {
+      headers: authHeader(),
+    });
+
+    if (response.ok) {
+      const data = await safeJson(response);
+      if (data) {
+        updateNotificationBadge(data.total_count);
+        renderNotificationDropdown(data);
+      }
+    }
+  } catch (err) {
+    // Silently fail
+  }
+}
+
+function updateNotificationBadge(count) {
+  const badge = document.getElementById("notificationBadge");
+  const bell = document.getElementById("notificationBell");
+  if (!badge || !bell) return;
+
+  if (count > 0) {
+    badge.style.display = "flex";
+    badge.textContent = count > 9 ? "9+" : String(count);
+    bell.classList.add("has-notifications");
+  } else {
+    badge.style.display = "none";
+    badge.textContent = "0";
+    bell.classList.remove("has-notifications");
+  }
+}
+
+function renderNotificationDropdown(data) {
+  const body = document.getElementById("notificationDropdownBody");
+  if (!body) return;
+
+  if (data.total_count === 0) {
+    body.innerHTML = '<p class="notification-empty">Nenhuma entrevista proxima</p>';
+    return;
+  }
+
+  let html = "";
+
+  if (data.today.length > 0) {
+    html += '<div class="notification-category today">Hoje</div>';
+    html += data.today.map(item => renderNotificationItem(item, "today")).join("");
+  }
+
+  if (data.tomorrow.length > 0) {
+    html += '<div class="notification-category tomorrow">Amanha</div>';
+    html += data.tomorrow.map(item => renderNotificationItem(item, "tomorrow")).join("");
+  }
+
+  if (data.this_week.length > 0) {
+    html += '<div class="notification-category this-week">Esta Semana</div>';
+    html += data.this_week.map(item => renderNotificationItem(item, "this-week")).join("");
+  }
+
+  body.innerHTML = html;
+}
+
+function renderNotificationItem(item, category) {
+  const time = formatDateTime(item.interview_datetime);
+  const typeText = getInterviewTypeText(item.interview_type);
+  const iconMap = { "today": "&#9888;", "tomorrow": "&#128197;", "this-week": "&#128198;" };
+
+  return `
+    <div class="notification-item" onclick="handleNotificationClick(${Number(item.id)})">
+      <div class="notification-item-icon ${escapeHtml(category)}">
+        ${iconMap[category] || "&#128198;"}
+      </div>
+      <div class="notification-item-content">
+        <div class="notification-item-title">${escapeHtml(item.application_empresa)}</div>
+        <div class="notification-item-subtitle">${escapeHtml(item.application_nome)} - ${escapeHtml(typeText)}</div>
+        <div class="notification-item-time">${escapeHtml(time)}</div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleNotifications() {
+  const dropdown = document.getElementById("notificationDropdown");
+  if (!dropdown) return;
+
+  dropdown.classList.toggle("active");
+
+  if (dropdown.classList.contains("active")) {
+    setTimeout(() => {
+      document.addEventListener("click", closeNotificationsOnOutsideClick);
+    }, 0);
+  }
+}
+
+function closeNotificationsOnOutsideClick(e) {
+  const wrapper = document.getElementById("notificationBellWrapper");
+  if (wrapper && !wrapper.contains(e.target)) {
+    const dropdown = document.getElementById("notificationDropdown");
+    if (dropdown) dropdown.classList.remove("active");
+    document.removeEventListener("click", closeNotificationsOnOutsideClick);
+  }
+}
+
+function handleNotificationClick(interviewId) {
+  const dropdown = document.getElementById("notificationDropdown");
+  if (dropdown) dropdown.classList.remove("active");
+
+  showSection("interviews");
+  editInterview(interviewId);
+}
+
+function startNotificationPolling() {
+  if (notificationInterval) clearInterval(notificationInterval);
+  notificationInterval = setInterval(loadNotifications, 5 * 60 * 1000);
+}
+
+function stopNotificationPolling() {
+  if (notificationInterval) {
+    clearInterval(notificationInterval);
+    notificationInterval = null;
+  }
+}
+
+async function showLoginReminders() {
+  if (!token) return;
+
+  try {
+    const response = await fetch(apiUrl(ENDPOINTS.notifications), {
+      headers: authHeader(),
+    });
+
+    if (response.ok) {
+      const data = await safeJson(response);
+      if (!data) return;
+
+      if (data.today.length > 0) {
+        const count = data.today.length;
+        const msg = count === 1
+          ? "Voce tem 1 entrevista hoje!"
+          : `Voce tem ${count} entrevistas hoje!`;
+        setTimeout(() => showToast(msg, "error"), 3500);
+      } else if (data.tomorrow.length > 0) {
+        const count = data.tomorrow.length;
+        const msg = count === 1
+          ? "Voce tem 1 entrevista amanha"
+          : `Voce tem ${count} entrevistas amanha`;
+        setTimeout(() => showToast(msg, "success"), 3500);
+      }
+    }
+  } catch (err) {
+    // Silently fail
+  }
+}
+
 // Expõe as funções globalmente para uso via onclick/onsubmit no HTML
 window.handleGoogleLogin = handleGoogleLogin;
 window.handleLogin = handleLogin;
@@ -1343,3 +1513,5 @@ window.closeInterviewModal = closeInterviewModal;
 window.editInterview = editInterview;
 window.deleteInterview = deleteInterview;
 window.handleSubmitInterview = handleSubmitInterview;
+window.toggleNotifications = toggleNotifications;
+window.handleNotificationClick = handleNotificationClick;
