@@ -755,6 +755,25 @@ body {
     max-height: 90vh;
     overflow-y: auto;
     animation: slideUp 0.3s;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+}
+
+.modal-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+}
+
+.modal-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-secondary);
 }
 
 @keyframes slideUp {
@@ -784,21 +803,26 @@ body {
 .modal-close {
     width: 36px;
     height: 36px;
-    border: none;
+    border: 1px solid var(--border);
     background: var(--bg-secondary);
     color: var(--text-secondary);
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1.25rem;
+    font-size: 1.1rem;
     transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-close:hover {
-    background: var(--bg-primary);
-    color: var(--accent-primary);
+    background: rgba(255, 80, 80, 0.1);
+    border-color: rgba(255, 80, 80, 0.3);
+    color: #ff5050;
 }
 
-#applicationForm {
+#applicationForm,
+#interviewForm {
     padding: 1.5rem;
 }
 
@@ -1352,9 +1376,14 @@ body {
 }
 
 .form-section h3 {
-    font-size: 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     color: var(--accent-primary);
     margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
 }
 
 textarea {
